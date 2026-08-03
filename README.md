@@ -12,7 +12,8 @@ codex plugin add starcut@starcut
 ```
 
 The ChatGPT plugin connects to the production StarCut MCP server at
-`https://starcut.io/mcp`. Authentication is completed through StarCut OAuth.
+`https://api.starcut.io/mcp`. Authentication is completed through StarCut
+OAuth.
 
 For guided installation, open `https://starcut.io/chatgpt.md` in the ChatGPT or
 Codex desktop app.
