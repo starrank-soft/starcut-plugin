@@ -8,7 +8,7 @@
       "name": "starcut",
       "source": {
         "source": "local",
-        "path": "./plugins/starcut"
+        "path": "./chatgpt"
       },
       "policy": {
         "installation": "AVAILABLE",
