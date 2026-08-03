@@ -1,0 +1,20 @@
+{
+  "name": "starcut",
+  "interface": {
+    "displayName": "StarCut"
+  },
+  "plugins": [
+    {
+      "name": "starcut",
+      "source": {
+        "source": "local",
+        "path": "./plugins/starcut"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Design"
+    }
+  ]
+}
