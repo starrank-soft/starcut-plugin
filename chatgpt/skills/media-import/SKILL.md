@@ -11,12 +11,15 @@ directly to object storage and never pass through an MCP tool call.
 
 1. Establish the exact project with `mcp__starcut__list_projects`,
    `mcp__starcut__create_project`, or `mcp__starcut__open_project`.
-2. Call `mcp__starcut__import_media` once with the exact `projectId`.
-3. Resolve the bundled Node runtime with `load_workspace_dependencies` when
+2. If `create_project` or `open_project` returns `browserHandoff.url`, open it
+   immediately and confirm the editor loaded before importing. Do not inspect,
+   hash, or upload files while its one-time handoff is still unopened.
+3. Call `mcp__starcut__import_media` once with the exact `projectId`.
+4. Resolve the bundled Node runtime with `load_workspace_dependencies` when
    that host tool is available.
-4. Run `scripts/upload-media.mjs` from this skill directory with the returned
+5. Run `scripts/upload-media.mjs` from this skill directory with the returned
    token, endpoint, and at most four readable local files.
-5. Use `mcp__starcut__glob` or `mcp__starcut__head` on the returned Artifact
+6. Use `mcp__starcut__glob` or `mcp__starcut__head` on the returned Artifact
    paths when the next operation needs server-visible readiness.
 
 ```bash

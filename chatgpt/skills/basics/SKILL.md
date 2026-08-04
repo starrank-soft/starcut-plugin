@@ -19,10 +19,20 @@ Use the exact `projectId` returned by StarCut for every project-scoped call.
 1. Call `mcp__starcut__create_project` when the user wants a new project.
 2. Call `mcp__starcut__list_projects` when an existing project is intended but
    its ID is unknown.
-3. Call `mcp__starcut__open_project` when an editor browser handoff is needed.
-4. Open the exact `browserHandoff.url`; it contains a short-lived credential.
-   Never print it or expose it in a Markdown link.
-5. Use `editorUrl` for user-facing links.
+3. Project creation does not open the editor. Make opening the exact
+   `browserHandoff.url` returned by `create_project` the next action. Do not
+   import, generate, edit, call another project tool, or ask a follow-up until
+   the editor is confirmed loaded.
+4. Treat `browserHandoff.url` as a short-lived, one-time credential. Never
+   print, retain, reuse, or expose it in a Markdown link. Submit its navigation
+   once; a queued browser launch is already in progress and must not open the
+   same handoff again.
+5. Call `mcp__starcut__open_project` to reopen an existing project or replace
+   an expired handoff. Only call it when ready to open the returned URL
+   immediately.
+6. A successful media import does not preserve an unopened handoff. Confirm
+   the editor first, then continue project work.
+7. Use `editorUrl` for user-facing links.
 
 Authorization already selects the StarCut workspace. Do not ask for or pass an
 organization ID.
