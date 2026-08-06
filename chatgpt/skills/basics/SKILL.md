@@ -246,9 +246,9 @@ source.
 ## Run Project Operations
 
 Use `mcp__starcut__run_task` for media generation, SVG/MG generation, and ASR.
-If it returns `monitoring`, call
-`mcp__starcut__poll_task` with the exact `projectId` and returned `taskId`.
-Never resubmit the same request merely because it is still running.
+Any project operation may return `monitoring` when it continues asynchronously.
+Call `mcp__starcut__poll_task` with the exact `projectId` and returned `taskId`;
+never resubmit the same request merely because it is still running.
 
 Use `mcp__starcut__client_call` for work that needs the connected Editor's
 playback state, Timeline renderer, or local media:
