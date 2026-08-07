@@ -246,9 +246,14 @@ source.
 ## Run Project Operations
 
 Use `mcp__starcut__run_task` for media generation, SVG/MG generation, and ASR.
-Any project operation may return `monitoring` when it continues asynchronously.
-Call `mcp__starcut__poll_task` with the exact `projectId` and returned `taskId`;
-never resubmit the same request merely because it is still running.
+If it returns `monitoring`, call `mcp__starcut__poll` with the exact `projectId`
+and returned `taskId`; never resubmit the same request merely because it is
+still running.
+
+Only `run_task` and `client_call` are pollable. A deferred `client_call` returns
+a `callId`; pass that `callId` to `mcp__starcut__poll`. Project file and Node
+tools such as `glob`, `head`, `read`, `write`, and `edit` return a terminal
+result and never return `monitoring`.
 
 Use `mcp__starcut__client_call` for work that needs the connected Editor's
 playback state, Timeline renderer, or local media:

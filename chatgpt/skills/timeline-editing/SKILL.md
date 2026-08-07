@@ -112,6 +112,12 @@ Tracks and Clips are direct ordered children. There are no `Tracks`, `Clips`,
 | `height` | number, `>= 1` | `1080` | Output height in pixels |
 | `fps` | number, `>= 1` | `30` | Output frame rate |
 | `backgroundColor` | color | `#000000` | Canvas background |
+| `coverUrl` | optional string | omitted | Direct image URL used as the Timeline cover |
+| `coverMode` | legacy `auto` or `custom` | omitted | Read compatibility only; omit when authoring |
+
+Set `coverUrl` through the editor's capture or cover-selection workflow. Do not
+invent storage URLs. `coverMode` is retained only for legacy wire compatibility;
+new Composition nodes intentionally omit it.
 
 Composition duration is derived from the maximum `start + duration` among its
 Clips. It is not stored. There are no `Duration`, `Resolution`, or `Fps` child

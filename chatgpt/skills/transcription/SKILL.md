@@ -11,6 +11,7 @@ captions:
 ```text
 Audio or Video Artifact
 → mcp__starcut__client_call with command: get_transcript
+→ mcp__starcut__run_task with task: transcribe when prepared
 → timestamped transcript
 → optional CaptionClip
 ```
@@ -23,7 +24,7 @@ only when the user separately asks to preserve readable transcript copy.
 
 | Need | Call |
 |---|---|
-| Get or create a full transcript | `mcp__starcut__client_call` with `command: "get_transcript"` |
+| Get a cached transcript or prepare canonical audio | `mcp__starcut__client_call` with `command: "get_transcript"` |
 | Materialize audio or select a source range | `mcp__starcut__client_call` with `command: "extract_audio"` |
 | Run ASR on an exact ready Audio Artifact | `mcp__starcut__run_task` with `task: "transcribe"` |
 | Generate speech | `mcp__starcut__query` with `audio.tts`, then `mcp__starcut__run_task(generate)` |
@@ -35,10 +36,13 @@ the connected editor prepares, uploads, and reuses its canonical full-length
 Audio Artifact before ASR. Repeated calls reuse the linked audio and completed
 transcript.
 
-The `get_transcript` command has ensure semantics: it may start a paid,
-durable ASR Task. If it returns `monitoring`, continue with the returned
-`taskId` by calling `mcp__starcut__poll_task` with the exact `projectId`; do not
-call `get_transcript` again to start another request.
+The `get_transcript` command only resolves cached transcript metadata and
+prepares canonical audio. If it returns `succeeded`, consume the transcript. If
+it returns `prepared`, call `mcp__starcut__run_task` once with the returned
+`runTask` value. Merge any chosen `modelId`, `language`, `diarize`, or
+`keyterms` into `runTask.params`. If that Task is still running, call
+`mcp__starcut__poll` with its `taskId`; do not call `get_transcript` again to
+poll or start duplicate work.
 
 ## Get a Transcript
 
@@ -49,17 +53,15 @@ Locate the source with `mcp__starcut__glob`, inspect it with
 {
   "projectId": "project-id",
   "command": "get_transcript",
-  "target": "artifact-id-from-head",
-  "params": {
-    "language": "zh",
-    "keyterms": ["StarCut"]
-  }
+  "target": "artifact-id-from-head"
 }
 ```
 
-Optional fields are `modelId`, `language`, `diarize`, and `keyterms`.
-Omit `modelId` to use the configured ASR default. Call
-`mcp__starcut__query` for `audio.asr` only when model selection matters.
+When the result is `prepared`, pass its `runTask.task` and `runTask.params` to
+`mcp__starcut__run_task`. Optional ASR fields are `modelId`, `language`,
+`diarize`, and `keyterms`; add them to those Task params, not to
+`mcp__starcut__client_call`. Omit `modelId` to use the configured ASR default.
+Call `mcp__starcut__query` for `audio.asr` only when model selection matters.
 
 Consume:
 
@@ -141,8 +143,9 @@ Treat authored copy as wording authority and ASR as timing authority:
 2. Generate TTS from exactly that copy.
 3. Place the Audio Artifact in an AudioClip.
 4. Call `mcp__starcut__client_call` with `command: "get_transcript"` on the generated Audio Artifact.
-5. Align recognized words to the authored copy and regroup readable lines.
-6. Update the same CaptionClip and set its source to the AudioTrack.
+5. If prepared, call `mcp__starcut__run_task` with the returned Task input.
+6. Align recognized words to the authored copy and regroup readable lines.
+7. Update the same CaptionClip and set its source to the AudioTrack.
 
 Preserve authored wording and punctuation unless the user asks to adopt the
 recognized text. Omit uncertain token spans rather than changing the copy.

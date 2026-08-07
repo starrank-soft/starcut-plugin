@@ -126,16 +126,16 @@ type MotionGraphicMetadata = {
   width: number;
   height: number;
   duration: number;
-  variables: readonly MotionGraphicVariable[];
+  variables: readonly MgVariable[];
 };
 
-type MotionGraphicVariableBase = {
+type MgVariableBase = {
   id: string;
   label: string;
   description?: string;
 };
 
-type MotionGraphicVariable = MotionGraphicVariableBase & (
+type MgVariable = MgVariableBase & (
   | { type: "string"; default: string }
   | {
       type: "number";
