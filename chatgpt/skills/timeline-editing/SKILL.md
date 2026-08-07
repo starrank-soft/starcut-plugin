@@ -244,6 +244,26 @@ storage or CDN URL in VML.
 References must resolve to the declared target type. A referenced Artifact,
 Track, or document cannot be deleted until its references are removed.
 
+### Motion Graphic Props
+
+An `.mg` MotionGraphicClip may override source-declared variables through one
+`Props` container. Variable IDs and types come only from the source metadata:
+
+```xml
+<MotionGraphicClip source="assets/lower-third.mg"
+                   start="0" duration="4000000"
+                   sourceStart="0" sourceDuration="4000000">
+  <Props>
+    <MotionGraphicProp name="title" value="Available Now" />
+    <MotionGraphicProp name="accent" value="#67e8f9" />
+  </Props>
+</MotionGraphicClip>
+```
+
+Omit an override to use its source default. Each name may appear once. Do not
+invent names or put position, scale, rotation, opacity, or layer state in
+Props; those remain Clip attributes.
+
 ## Visual Attributes
 
 `VideoClip`, `ImageClip`, `TextClip`, `CaptionClip`, and `MotionGraphicClip`

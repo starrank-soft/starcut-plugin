@@ -232,8 +232,8 @@ exact, unique source replacement:
 {
   "projectId": "project-id",
   "path": "assets/lower-third.mg",
-  "search": "<span class=\"title\">Launch</span>",
-  "replace": "<span class=\"title\">Available Now</span>"
+  "search": "<text id=\"title\">Launch</text>",
+  "replace": "<text id=\"title\">Available Now</text>"
 }
 ```
 

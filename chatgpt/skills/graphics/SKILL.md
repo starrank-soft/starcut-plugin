@@ -52,24 +52,24 @@ If `run_task` returns `monitoring`, call `mcp__starcut__poll_task` with the exac
 
 ## Edit Existing Source
 
-SVG and MG are editable text Artifacts, not VML documents or Nodes. Read the
+SVG and Motion Graphic source files are editable text Artifacts, not VML documents or Nodes. Read the
 current raw source, then call `mcp__starcut__edit` with one exact replacement:
 
 ```json
 {
   "projectId": "project-id",
   "path": "assets/lower-third.mg",
-  "search": "<span class=\"title\">Launch</span>",
-  "replace": "<span class=\"title\">Available Now</span>"
+  "search": "<text id=\"title\">Launch</text>",
+  "replace": "<text id=\"title\">Available Now</text>"
 }
 ```
 
 SEARCH includes whitespace and must match exactly once. Replace the smallest
 distinct range that expresses the change. Use this same operation for focused
-SVG copy, color, geometry, filter, and attribute changes, and for focused MG
-HTML, CSS, copy, data, duration, or animation-code changes.
+SVG copy, color, geometry, filter, and attribute changes, and for focused `.mg`
+copy, data, duration, or timeline changes.
 
-Do not use VML Node tools for SVG/MG source. Do not use
+Do not use VML Node tools for SVG or Motion Graphic source. Do not use
 `mcp__starcut__write` merely to update an existing graphic; reserve complete
 replacement for an explicitly requested rewrite. A successful edit keeps the
 same project path, so existing Timeline Clip sources remain valid.
@@ -84,16 +84,19 @@ checkerboard or preview background.
 
 ## Motion Graphics
 
-Motion Graphics are animated or time-dependent `.mg` Artifacts backed by an
-ordinary HyperFrames HTML composition. They are broader than animated stickers:
-use them for titles, data graphics, lower thirds, callouts, and other editable
-browser-rendered elements.
+Motion Graphics are animated or time-dependent `.mg` Artifacts authored as
+directly importable JavaScript modules. Export static `metadata` describing
+size, duration, and editable variables, then default-export an `HTMLElement`
+subclass. Create one SVG in its shadow root, animate with injected GSAP, expose
+replaceable props, and implement deterministic logic in `render(time)`. Leave
+placement, compositing, and external transform animation to the Timeline Clip.
+StarCut owns module loading and the clock. The live component uses the shared
+HTML band; thumbnails, capture, and export rasterize the same rendered state.
 
-HyperFrames defines the MG authoring format. For direct authoring or a
-substantial code edit, load
-[`references/hyperframes.md`](references/hyperframes.md) before writing. A
-`create_mg` Task already receives that reference; describe the desired result
-without restating the format contract.
+For direct authoring or a substantial code edit, load
+[`references/mg.md`](references/mg.md) before writing. A `create_mg` Task
+already receives that reference; describe the desired result without restating
+the format contract.
 
 ## Place and Verify
 
