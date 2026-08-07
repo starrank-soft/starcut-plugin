@@ -246,9 +246,14 @@ source.
 ## Run Project Operations
 
 Use `mcp__starcut__run_task` for media generation, SVG/MG generation, and ASR.
-Any project operation may return `monitoring` when it continues asynchronously.
-Call `mcp__starcut__poll_task` with the exact `projectId` and returned `taskId`;
-never resubmit the same request merely because it is still running.
+If it returns `monitoring`, call `mcp__starcut__poll` with the exact `projectId`
+and returned `taskId`; never resubmit the same request merely because it is
+still running.
+
+Only `run_task` and `client_call` are pollable. A deferred `client_call` returns
+a `callId`; pass that `callId` to `mcp__starcut__poll`. Project file and Node
+tools such as `glob`, `head`, `read`, `write`, and `edit` return a terminal
+result and never return `monitoring`.
 
 Use `mcp__starcut__client_call` for work that needs the connected Editor's
 playback state, Timeline renderer, or local media:
@@ -262,8 +267,25 @@ playback state, Timeline renderer, or local media:
 | `extract_audio` | exact Video Artifact ID |
 | `get_transcript` | exact Audio or Video Artifact ID |
 
-`seek` uses `params.positionUs` in integer microseconds. Client calls may return
-Artifacts. They require a connected Editor.
+`seek` uses `params.positionUs` in integer microseconds. `extract_frame` uses
+`params.timeUs`; it never reads the active playhead, and omitting it extracts
+the source at 0 seconds. Do not pass `positionUs` to `extract_frame`.
+
+For example, extract a 640-pixel-long-edge frame at 1.2 seconds for visual
+inspection:
+
+```json
+{
+  "projectId": "project-id",
+  "command": "extract_frame",
+  "target": "compositions/main.vml",
+  "params": { "timeUs": 1200000, "maxLongEdge": 640 }
+}
+```
+
+`params.maxLongEdge` accepts 64–4096 pixels and preserves the source aspect
+ratio and layout. Omit it only when full source resolution is required. Client
+calls may return Artifacts. They require a connected Editor.
 
 Artifact-producing operations do not place their result on a Timeline
 automatically. Add or update the intended Clip explicitly when placement is

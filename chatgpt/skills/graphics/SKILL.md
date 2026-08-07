@@ -47,7 +47,7 @@ in integer microseconds. Omit `modelId` to use the primary reasoning model.
 }
 ```
 
-If `run_task` returns `monitoring`, call `mcp__starcut__poll_task` with the exact
+If `run_task` returns `monitoring`, call `mcp__starcut__poll` with the exact
 `projectId` and returned `taskId`. Never resubmit the same creation request.
 
 ## Edit Existing Source
@@ -84,8 +84,8 @@ checkerboard or preview background.
 
 ## Motion Graphics
 
-Motion Graphics are animated or time-dependent `.mg` Artifacts authored as
-directly importable JavaScript modules. Export static `metadata` describing
+Motion Graphics are animated or time-dependent `.mg` Artifacts authored
+as directly importable JavaScript modules. Export static `metadata` describing
 size, duration, and editable variables, then default-export an `HTMLElement`
 subclass. Create one SVG in its shadow root, animate with injected GSAP, expose
 replaceable props, and implement deterministic logic in `render(time)`. Leave

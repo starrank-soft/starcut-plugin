@@ -274,9 +274,10 @@ submit provider encoding parameters.
 
 ## Poll and Use the Result
 
-`mcp__starcut__run_task` returns stable Task and Artifact identities. If the
-workflow depends on progress or output, call `mcp__starcut__poll_task` with
-the exact `projectId` and `taskId`. Never resubmit a queued or running Task.
+`mcp__starcut__run_task` returns stable Task and Artifact identities without
+waiting for generation to finish. If the workflow depends on progress or
+output, call `mcp__starcut__poll` with the exact `projectId` and `taskId`.
+Never resubmit a queued or running Task.
 
 Generation does not place media on a timeline. When placement is requested,
 use the returned Artifact path as the `source` of a compatible `ImageClip`,
