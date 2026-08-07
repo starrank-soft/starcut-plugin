@@ -262,8 +262,25 @@ playback state, Timeline renderer, or local media:
 | `extract_audio` | exact Video Artifact ID |
 | `get_transcript` | exact Audio or Video Artifact ID |
 
-`seek` uses `params.positionUs` in integer microseconds. Client calls may return
-Artifacts. They require a connected Editor.
+`seek` uses `params.positionUs` in integer microseconds. `extract_frame` uses
+`params.timeUs`; it never reads the active playhead, and omitting it extracts
+the source at 0 seconds. Do not pass `positionUs` to `extract_frame`.
+
+For example, extract a 640-pixel-long-edge frame at 1.2 seconds for visual
+inspection:
+
+```json
+{
+  "projectId": "project-id",
+  "command": "extract_frame",
+  "target": "compositions/main.vml",
+  "params": { "timeUs": 1200000, "maxLongEdge": 640 }
+}
+```
+
+`params.maxLongEdge` accepts 64–4096 pixels and preserves the source aspect
+ratio and layout. Omit it only when full source resolution is required. Client
+calls may return Artifacts. They require a connected Editor.
 
 Artifact-producing operations do not place their result on a Timeline
 automatically. Add or update the intended Clip explicitly when placement is
