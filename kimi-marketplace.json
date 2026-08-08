@@ -1,0 +1,10 @@
+{
+  "version": "2",
+  "plugins": [
+    {
+      "id": "starcut",
+      "displayName": "StarCut",
+      "source": "https://github.com/starrank-soft/starcut-plugin"
+    }
+  ]
+}

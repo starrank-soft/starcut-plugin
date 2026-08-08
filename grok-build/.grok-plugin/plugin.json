@@ -1,0 +1,20 @@
+{
+  "name": "starcut",
+  "version": "0.3.0",
+  "description": "Connect Grok Build to StarCut for editable video workflows.",
+  "author": {
+    "name": "StarRank Soft",
+    "url": "https://starcut.io"
+  },
+  "homepage": "https://starcut.io",
+  "repository": "https://github.com/starrank-soft/starcut-plugin",
+  "license": "MIT",
+  "keywords": [
+    "starcut",
+    "video",
+    "video-editing",
+    "timeline",
+    "grok-build",
+    "mcp"
+  ]
+}

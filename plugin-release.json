@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "repository": "https://github.com/starrank-soft/starcut-monorepo",
+    "path": "plugins/starcut"
+  },
+  "version": "0.3.0",
+  "hosts": [
+    "codex",
+    "claude-code",
+    "grok-build",
+    "cursor",
+    "kimi-code",
+    "workbuddy"
+  ]
+}
