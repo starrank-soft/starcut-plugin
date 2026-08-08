@@ -11,6 +11,10 @@
     "grok-build",
     "cursor",
     "kimi-code",
-    "workbuddy"
+    "workbuddy",
+    "qoder",
+    "trae",
+    "github-copilot",
+    "opencode"
   ]
 }

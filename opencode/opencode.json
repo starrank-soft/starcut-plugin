@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "starcut": {
+      "type": "remote",
+      "url": "https://api.starcut.io/mcp",
+      "enabled": true
+    }
+  }
+}
