@@ -20,9 +20,9 @@ Use the exact `projectId` returned by StarCut for every project-scoped call.
 2. Call `mcp__starcut__list_projects` when an existing project is intended but
    its ID is unknown.
 3. Project creation does not open the editor. Make opening the exact
-   `browserHandoff.url` returned by `create_project` the next action. Do not
-   import, generate, edit, call another project tool, or ask a follow-up until
-   the editor is confirmed loaded.
+   `browserHandoff.url` returned by `mcp__starcut__create_project` the next
+   action. Do not import, generate, edit, call another project tool, or ask a
+   follow-up until the editor is confirmed loaded.
 4. Treat `browserHandoff.url` as a short-lived, one-time credential. Never
    print, retain, reuse, or expose it in a Markdown link. Submit its navigation
    once; a queued browser launch is already in progress and must not open the
@@ -90,7 +90,7 @@ same project path, so existing references remain valid.
 | Read one VML, Markdown, SVG, or MG file | `mcp__starcut__read` |
 | Read one VML Node | `mcp__starcut__read` with `path` and `nodeId` |
 | Inspect file or Artifact metadata | `mcp__starcut__head` |
-| Inspect live model capability | `mcp__starcut__query` |
+| Inspect models, fonts, or reusable SFX | `mcp__starcut__query` |
 
 Useful `mcp__starcut__glob` patterns include:
 
@@ -101,24 +101,41 @@ compositions/**/*.vml
 assets/*
 assets/*.{png,jpg,jpeg,webp,svg}
 assets/*.{mp4,mov,webm}
-assets/*.{mp3,wav,m4a}
+assets/*.{mp3,wav,m4a,ogg}
 assets/*.mg
 ```
 
 Use `mcp__starcut__read` for known editable text. A VML Node can be read with
 its file `path` and exact `nodeId`; Markdown, SVG, and MG are always read as
-complete source files. Do not ask `read` to return binary Artifact bytes.
+complete source files. Do not ask `mcp__starcut__read` to return binary
+Artifact bytes.
 Reading VML does not follow a `source`; read or inspect the exact referenced
 path separately when needed.
 
 Use `mcp__starcut__head` for authoritative Artifact kind, readiness, dimensions,
-duration, URL, and `artifactId`. Model inputs copy a ready Artifact's exact
-`{ "artifactId": "...", "url": "..." }` pair. Timeline `source` Attributes use
-the project-relative path instead.
+duration, URL, and provenance. Agent operations and Timeline `source`
+Attributes use the project-relative path.
 
 Use `mcp__starcut__grep` for VML or Markdown source. VML matches can include
 Node IDs; Markdown matches identify the file and matching line. It does not
 search Artifact content or metadata.
+
+## Query Catalogs
+
+`mcp__starcut__query` reads one leaf catalog selected by `kind`:
+
+| `kind` | Use |
+|---|---|
+| `model` | Resolve live model capabilities for one intent |
+| `font` | Find curated fonts and supported weights, styles, and subsets |
+| `sfx` | Find reusable sound effects before generating a new one |
+
+Reuse compatible results already present in the conversation. Query again only
+when the previous result does not cover the current intent or filters.
+
+An SFX result is not yet a project file. When it is needed, call
+`mcp__starcut__use_library` with its `libraryId` and the current `projectId`,
+then use the returned `assets/*` path.
 
 ## Write and Update
 
@@ -139,7 +156,7 @@ changes:
 }
 ```
 
-`coverUrl` is a directly usable image URL, not an Artifact ID or project path.
+`coverUrl` is a directly usable image URL, not a project path.
 
 ### VML Files
 
@@ -239,9 +256,9 @@ exact, unique source replacement:
 
 Read the current source first when its exact text is unknown. Replace the
 smallest meaningful range. Do not use VML Node tools for Markdown, SVG, or MG,
-and do not use `write` merely to change copy, color, timing, or one animation
-detail. Load `graphics` before authoring or substantially changing graphic
-source.
+and do not use `mcp__starcut__write` merely to change copy, color, timing, or
+one animation detail. Load `graphics` before authoring or substantially
+changing graphic source.
 
 ## Run Project Operations
 
@@ -250,10 +267,12 @@ If it returns `monitoring`, call `mcp__starcut__poll` with the exact `projectId`
 and returned `taskId`; never resubmit the same request merely because it is
 still running.
 
-Only `run_task` and `client_call` are pollable. A deferred `client_call` returns
-a `callId`; pass that `callId` to `mcp__starcut__poll`. Project file and Node
-tools such as `glob`, `head`, `read`, `write`, and `edit` return a terminal
-result and never return `monitoring`.
+Only `mcp__starcut__run_task` and `mcp__starcut__client_call` are pollable. A
+deferred `mcp__starcut__client_call` returns a `callId`; pass that `callId` to
+`mcp__starcut__poll`. Project file and Node tools such as
+`mcp__starcut__glob`, `mcp__starcut__head`, `mcp__starcut__read`,
+`mcp__starcut__write`, and `mcp__starcut__edit` return a terminal result and
+never return `monitoring`.
 
 Use `mcp__starcut__client_call` for work that needs the connected Editor's
 playback state, Timeline renderer, or local media:
@@ -263,9 +282,9 @@ playback state, Timeline renderer, or local media:
 | `play` | exact Timeline path or ID; activates it first |
 | `pause`, `seek` | `active` |
 | `activate_timeline`, `render_timeline` | exact Timeline path or ID |
-| `extract_frame` | exact Timeline path/ID or visual Artifact ID |
-| `extract_audio` | exact Video Artifact ID |
-| `get_transcript` | exact Audio or Video Artifact ID |
+| `extract_frame` | exact Timeline or visual Artifact path |
+| `extract_audio` | exact Video Artifact path |
+| `get_transcript` | exact Audio or Video Artifact path |
 
 `seek` uses `params.positionUs` in integer microseconds. `extract_frame` uses
 `params.timeUs`; it never reads the active playhead, and omitting it extracts

@@ -27,7 +27,7 @@ only when the user separately asks to preserve readable transcript copy.
 | Get a cached transcript or prepare canonical audio | `mcp__starcut__client_call` with `command: "get_transcript"` |
 | Materialize audio or select a source range | `mcp__starcut__client_call` with `command: "extract_audio"` |
 | Run ASR on an exact ready Audio Artifact | `mcp__starcut__run_task` with `task: "transcribe"` |
-| Generate speech | `mcp__starcut__query` with `audio.tts`, then `mcp__starcut__run_task(generate)` |
+| Generate speech | `mcp__starcut__query` with `kind: "model"` and intent `audio.tts`, then `mcp__starcut__run_task(generate)` |
 | Persist captions | StarCut Node tools on the target Timeline |
 
 Use `mcp__starcut__client_call` with `command: "get_transcript"` by default for both
@@ -47,13 +47,13 @@ poll or start duplicate work.
 ## Get a Transcript
 
 Locate the source with `mcp__starcut__glob`, inspect it with
-`mcp__starcut__head`, and pass its exact Artifact ID:
+`mcp__starcut__head`, and pass its exact path:
 
 ```json
 {
   "projectId": "project-id",
   "command": "get_transcript",
-  "target": "artifact-id-from-head"
+  "target": "assets/dialogue.mp4"
 }
 ```
 
@@ -61,7 +61,8 @@ When the result is `prepared`, pass its `runTask.task` and `runTask.params` to
 `mcp__starcut__run_task`. Optional ASR fields are `modelId`, `language`,
 `diarize`, and `keyterms`; add them to those Task params, not to
 `mcp__starcut__client_call`. Omit `modelId` to use the configured ASR default.
-Call `mcp__starcut__query` for `audio.asr` only when model selection matters.
+Call `mcp__starcut__query` with `kind: "model"` and intent `audio.asr` only
+when model selection matters.
 
 Consume:
 
@@ -85,7 +86,7 @@ range:
 {
   "projectId": "project-id",
   "command": "extract_audio",
-  "target": "video-artifact-id",
+  "target": "assets/interview.mp4",
   "params": {
     "timeRange": {
       "startUs": 2000000,
@@ -97,9 +98,9 @@ range:
 ```
 
 The range is half-open. After extracting a selected range, run
-`mcp__starcut__run_task` with `task: "transcribe"` on the returned ready Audio Artifact using its exact
-`{artifactId, url}` pair. Do not extract full video audio as a routine
-precondition for the `get_transcript` command.
+`mcp__starcut__run_task` with `task: "transcribe"` and the returned Audio path.
+Do not extract full video audio as a routine precondition for the
+`get_transcript` command.
 
 ## Transcript to Timeline Captions
 
