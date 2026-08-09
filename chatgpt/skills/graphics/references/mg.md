@@ -18,6 +18,7 @@ export const metadata = {
   width: 1920,
   height: 1080,
   duration: 5,
+  fonts: [{ family: "noto-sans-sc", weight: 700 }],
   variables: [
     {
       id: "title",
@@ -59,7 +60,8 @@ export default class LaunchTitle extends HTMLElement {
         <svg xmlns="http://www.w3.org/2000/svg"
              viewBox="0 0 ${metadata.width} ${metadata.height}">
           <g id="title">
-            <text x="960" y="540" text-anchor="middle"></text>
+            <text x="960" y="540" text-anchor="middle"
+                  font-family="Noto Sans SC" font-weight="700"></text>
           </g>
           <path id="wave" fill="none" stroke-width="12" />
         </svg>
@@ -126,6 +128,11 @@ type MotionGraphicMetadata = {
   width: number;
   height: number;
   duration: number;
+  fonts?: readonly {
+    family: string;
+    weight?: number;
+    style?: "normal" | "italic";
+  }[];
   variables: readonly MgVariable[];
 };
 
@@ -160,6 +167,10 @@ type MgVariable = MgVariableBase & (
 - Use integer pixels from 64 through 4096 for `width` and `height`.
 - Use 0.1 through 600 seconds for `duration`. StarCut converts it to integer
   microseconds when storing Artifact Blob metadata and Timeline source ranges.
+- Declare every font used by SVG text in `fonts`. Each `family` is a stable
+  StarCut catalog ID; use its corresponding CSS family name in the SVG.
+- Use at most 16 unique family, weight, and style combinations. Weight defaults
+  to 400 and style defaults to `normal`.
 - Declare at most 64 variables and at most 100 options on one enum variable.
 - Keep variable IDs unique and stable across focused source edits.
 - Use only `string`, `number`, `color`, `boolean`, and `enum` variables in v1.
@@ -181,9 +192,24 @@ type MgVariable = MgVariableBase & (
 - Make all internal timing fit within `metadata.duration`.
 
 After creation or source editing, StarCut validates this descriptor and stores
-`version`, `width`, `height`, duration in microseconds, and `variables` on the
-immutable Artifact Blob. Media panels and Timeline placement read that stored
-projection without importing or mounting the module.
+`version`, `width`, `height`, duration in microseconds, `fonts`, and `variables`
+on the immutable Artifact Blob. Media panels and Timeline placement read that
+stored projection without importing or mounting the module.
+
+## Font Catalog
+
+StarCut owns font download, immutable caching, preview loading, and SVG frame
+embedding. Declare catalog fonts in metadata and never fetch or embed font files
+inside the authored module.
+
+Reuse a compatible `kind: "font"` catalog result already present in the
+conversation. Otherwise query the font catalog first. Write the returned stable
+`id` to metadata and its returned `family` to SVG `font-family`; never invent
+either value.
+
+Use only the weights and styles needed by the scene. StarCut selects only the
+font chunks needed by the current SVG text, then embeds those exact bytes when
+serializing frames for thumbnails, capture, and export.
 
 The server must parse the module as JavaScript and statically evaluate only the
 exported metadata object literal. It must never execute the generated module.
@@ -266,8 +292,8 @@ are parsed and validated from the source-owned descriptor before assignment.
 - Use native SVG paths, text, gradients, masks, clip paths, patterns, and
   restrained filters.
 - Keep the canvas transparent unless the request asks for a background.
-- Use installed system fonts or embed font bytes inside the SVG. Do not depend
-  on a host-page `@font-face`; serialized frames cannot carry that declaration.
+- Use only fonts declared in `metadata.fonts`. StarCut provides the matching
+  `@font-face` resources to live preview and serialized SVG frames.
 - Keep resources self-contained. Embedded raster images may use `data:image/*`.
 - Do not import packages, load external URLs, call network or storage APIs, or
   access the host document.
