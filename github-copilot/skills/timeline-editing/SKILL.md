@@ -113,11 +113,9 @@ Tracks and Clips are direct ordered children. There are no `Tracks`, `Clips`,
 | `fps` | number, `>= 1` | `30` | Output frame rate |
 | `backgroundColor` | color | `#000000` | Canvas background |
 | `coverUrl` | optional string | omitted | Direct image URL used as the Timeline cover |
-| `coverMode` | legacy `auto` or `custom` | omitted | Read compatibility only; omit when authoring |
 
 Set `coverUrl` through the editor's capture or cover-selection workflow. Do not
-invent storage URLs. `coverMode` is retained only for legacy wire compatibility;
-new Composition nodes intentionally omit it.
+invent storage URLs.
 
 Composition duration is derived from the maximum `start + duration` among its
 Clips. It is not stored. There are no `Duration`, `Resolution`, or `Fps` child
@@ -281,9 +279,12 @@ share these flat visual Attributes:
 | `positionX`, `positionY` | number | `0` |
 | `scaleX`, `scaleY` | number | `1` |
 | `rotation` | number | `0` |
-| `anchorX`, `anchorY` | number | `0.5` |
 | `blendMode` | enum | `normal` |
 | `cornerRadius` | optional number, `>= 0` | omitted |
+
+`VideoClip`, `ImageClip`, and `MotionGraphicClip` also support `anchorX` and
+`anchorY` with a default of `0.5`. Text origin comes from `align` and
+`verticalAlign`; do not author text anchors.
 
 `cornerRadius` uses Composition pixels at natural scale. A negative scale
 performs a horizontal or vertical flip; there is no separate Flip Node.
@@ -310,32 +311,6 @@ flat Attribute groups.
 |---|---|---:|
 | `cropLeft`, `cropTop`, `cropRight`, `cropBottom` | number, `0..1` | `0` |
 
-### Color Adjustment
-
-| Attribute | Type | Default |
-|---|---|---:|
-| `brightness` | number | `0` |
-| `contrast` | number | `0` |
-| `saturation` | number | `0` |
-| `hue` | number | `0` |
-| `temperature` | number | `0` |
-| `tint` | number | `0` |
-| `highlights` | number | `0` |
-| `shadows` | number | `0` |
-
-The Schema defines no numeric min/max for color-adjustment Attributes.
-
-### Background Fill
-
-| Attribute | Type | Default |
-|---|---|---:|
-| `backgroundFillType` | optional `color`, `blur`, or `image` | omitted |
-| `backgroundFillColor` | optional color | omitted |
-| `backgroundFillIntensity` | optional number | omitted |
-| `backgroundFillSource` | optional Image Artifact reference | omitted |
-
-`backgroundFillSource`, when present, uses an exact Image Artifact path.
-
 ### Embedded Audio
 
 | Attribute | Type and constraint | Default |
@@ -355,8 +330,12 @@ VideoClip uses `muteAudio`; AudioClip and Tracks use `mute`.
 ## ImageClip
 
 ImageClip supports the common timeline and visual Attributes plus the same
-Crop, Color Adjustment, and Background Fill Attributes as VideoClip. It has no
-source range, embedded-audio controls, or fade Attributes.
+Crop Attributes as VideoClip. It also supports visual `fadeInDuration` and
+`fadeOutDuration`. It has no source range or embedded-audio controls.
+
+| Attribute | Type and constraint | Default |
+|---|---|---:|
+| `fadeInDuration`, `fadeOutDuration` | optional integer microseconds, `>= 0` | omitted |
 
 ## AudioClip
 
@@ -378,11 +357,14 @@ TextClip owns direct Text Data. It has no `source`, `Prompt`, `Input`,
 TextClip supports the common timeline and visual Attributes plus Typography
 and Decoration.
 
+TextClip has no dedicated fade Attributes. Animate its existing visual
+Attributes when the whole text layer needs an entrance or exit.
+
 ```vml
 <TextClip
   start="0"
   duration="3000000"
-  fontFamily="Inter"
+  fontFamily="inter"
   fontSize="64"
   fontWeight="700"
   color="#ffffff"
@@ -392,14 +374,20 @@ and Decoration.
 
 ### Typography
 
+Use the default `sans-serif` without querying when no specific typography is
+required. For an intentional font choice, reuse a compatible font query already
+present in the conversation; otherwise call `starcut/query` with
+`kind: "font"` and write the returned stable `id` to `fontFamily`. Never invent
+a catalog font ID.
+
 | Attribute | Type | Default |
 |---|---|---:|
-| `fontFamily` | string | `sans-serif` |
-| `fontSize` | number | `24` |
-| `fontWeight` | named or numeric enum | `regular` |
+| `fontFamily` | CSS generic family or catalog font ID | `sans-serif` |
+| `fontSize` | number, `>= 1` | `24` |
+| `fontWeight` | named or numeric-string enum | `regular` |
 | `color` | color | `#FFFFFF` |
 | `letterSpacing` | number | `0` |
-| `lineHeight` | number | `1.5` |
+| `lineHeight` | number, `>= 0.1` | `1.5` |
 | `align` | enum | `center` |
 | `verticalAlign` | enum | `middle` |
 | `italic` | boolean | `false` |
@@ -411,7 +399,7 @@ Exact enum values:
 ```text
 fontWeight: thin light regular medium semibold bold heavy black
             100 200 300 400 500 600 700 800 900
-align: left center right justify
+align: left center right
 verticalAlign: top middle bottom
 ```
 
@@ -422,13 +410,15 @@ All Decoration Attributes are optional:
 | Attribute | Type |
 |---|---|
 | `borderColor` | color |
-| `borderWidth` | number |
+| `borderWidth` | number, `>= 0` |
 | `shadowColor` | color |
 | `shadowOffsetX`, `shadowOffsetY` | number |
-| `shadowBlur` | number |
+| `shadowBlur` | number, `>= 0` |
 | `backgroundColor` | color |
-| `backgroundPadding` | number |
-| `backgroundRadius` | number |
+| `padding` | number, `>= 0` |
+
+For TextClip and CaptionClip, the shared `cornerRadius` Visual Attribute rounds
+the `backgroundColor` box. There is no separate background-radius Attribute.
 
 Typography and Decoration remain flat Clip Attributes. There are no
 `Typography`, `Decoration`, `Style`, `Border`, `Shadow`, or `Background`
@@ -455,6 +445,11 @@ Caption-only Attributes:
 not historical provenance. The source Track cannot be deleted while the
 reference exists.
 
+Caption motion controls its lines or characters; CaptionClip has no whole-Clip
+fade Attributes. Line motion transforms the line background and text as one
+block. Character motion animates glyphs while keeping the block background
+stable.
+
 ### Caption Text Data
 
 - `<p>` and `<span>` are text syntax, not VML Nodes. They have no
@@ -474,7 +469,8 @@ reference exists.
 
 MotionGraphicClip supports the common timeline and visual Attributes. Its
 MotionGraphic Artifact source is time-addressable, so `sourceDuration` is
-required and `sourceStart` defaults to zero.
+required and `sourceStart` defaults to zero. Its source owns the internal
+animation; MotionGraphicClip has no dedicated fade Attributes.
 
 ## Editing Timelines
 
@@ -493,9 +489,9 @@ required and `sourceStart` defaults to zero.
   one value; its `p` and `span` elements are text syntax, not Nodes.
 - When an operation returns a new Artifact path, update the intended Clip's
   `source`. An SVG/MG edit at the existing path needs no Clip change.
-- Keep timing, source ranges, transforms, crop, color adjustments, background
-  fill, audio, fades, typography, decoration, and caption motion as flat
-  Attributes on their owning Node. Do not create wrapper child Nodes.
+- Keep timing, source ranges, transforms, crop, audio, fades, typography,
+  decoration, and caption motion as flat Attributes on their owning Node. Do
+  not create wrapper child Nodes.
 
 Read the affected Node when a later mutation needs a generated ID or resulting
 Text Data. Inspect the composed Timeline when timing, placement, animation,

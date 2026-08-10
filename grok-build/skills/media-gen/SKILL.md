@@ -8,7 +8,7 @@ description: Use when generating or editing StarCut image, video, music, sound-e
 All generated media follows one workflow:
 
 ```text
-call starcut__query for the requested capability
+reuse a compatible model query, or query the requested capability
 → resolve any project media inputs
 → run one generate Task
 → poll that Task
@@ -17,9 +17,10 @@ call starcut__query for the requested capability
 
 The live model catalog is authoritative for model IDs, availability, supported
 input modes, parameter names, allowed values, defaults, and limits. This skill
-defines the stable generation envelope and the intent-specific basics. Always
-use `starcut__query` for the selected intent before constructing detailed
-model parameters.
+defines the stable generation envelope and the intent-specific basics. Reuse a
+compatible `starcut__query` result already present in the conversation.
+Call it with `kind: "model"` before constructing detailed parameters only when
+the required intent or capability is not already known.
 
 ## Common Workflow
 
@@ -36,6 +37,7 @@ Query exactly one intent:
 
 ```json
 {
+  "kind": "model",
   "where": { "intent": "video.generate" }
 }
 ```
@@ -73,18 +75,15 @@ Tasks only when the user asks for separate outputs.
 
 ## Project Media Inputs
 
-Every project media input is an exact pair:
+Every project media input is an exact project path:
 
 ```json
-{
-  "artifactId": "artifact-id-from-head",
-  "url": "url-from-head"
-}
+"assets/reference.png"
 ```
 
-Locate a path with `starcut__glob`, inspect it with
-`starcut__head`, and copy both fields. Never pass an Artifact path, ID
-alone, URL alone, binary data, or base64 as model media input.
+Locate a path with `starcut__glob` and inspect it with
+`starcut__head`. Pass that path directly; never pass a URL, binary data,
+or base64 as model media input.
 
 Stable media-slot mappings are:
 
@@ -107,7 +106,7 @@ Stable input:
 | Field | Meaning |
 |---|---|
 | `prompt` | The requested image or edit |
-| `referenceImages` | Optional Artifact-pair array for editing or guidance |
+| `referenceImages` | Optional project-path array for editing or guidance |
 
 Common model parameters include `aspectRatio`, `resolution`, and sometimes
 `quality`; use only keys and values returned by `starcut__query`.
@@ -141,12 +140,7 @@ Editing adds references rather than changing the Task type:
     "name": "product-hero-edited.png",
     "input": {
       "prompt": "Preserve the product and replace only the background",
-      "referenceImages": [
-        {
-          "artifactId": "artifact-id-from-head",
-          "url": "url-from-head"
-        }
-      ],
+      "referenceImages": ["assets/product-reference.png"],
       "aspectRatio": "16:9",
       "resolution": "2K"
     }
@@ -175,10 +169,7 @@ model-specific and must come from `starcut__query`.
     "name": "product-reveal.mp4",
     "input": {
       "prompt": "Slow cinematic push-in while light moves across the product",
-      "firstFrame": {
-        "artifactId": "artifact-id-from-head",
-        "url": "url-from-head"
-      },
+      "firstFrame": "assets/product-hero.png",
       "aspectRatio": "16:9",
       "resolution": "720p",
       "duration": 5,
@@ -217,6 +208,20 @@ lyrics or instrumental control. StarCut owns the audio delivery format; do not
 submit provider encoding parameters.
 
 ## Sound Effects
+
+Before generating, reuse a compatible SFX catalog result or search the reusable
+Library:
+
+```json
+{
+  "kind": "sfx",
+  "where": { "q": "polished metallic whoosh" }
+}
+```
+
+If a result fits, call `starcut__use_library` with the current `projectId`
+and its `libraryId`, then use the returned Artifact. Query `kind: "model"` with
+intent `audio.sfx` and generate only when the Library has no suitable result.
 
 Sound effects use `prompt` for the audible event, environment, perspective,
 intensity, and temporal shape. Common model parameters include `duration`,
