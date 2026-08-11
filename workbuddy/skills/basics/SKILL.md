@@ -20,7 +20,7 @@ plugin is installed but its tools are absent, authenticate the configured
 `starcut` server and reload the host's plugin/tool session. Reinstalling the
 same package does not repair a missing OAuth session.
 
-Open the MCP management surface, authorize the StarCut server, then run `/reload-plugins` or start a new WorkBuddy/CodeBuddy session.
+WorkBuddy often has no MCP OAuth UI. Run `node scripts/mcp-manual-oauth.mjs --host workbuddy --write-config`, then start a new WorkBuddy/CodeBuddy session. If the host later exposes OAuth for `starcut`, you may use it instead.
 
 ## Establish the Project
 

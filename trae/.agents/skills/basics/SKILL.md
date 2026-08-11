@@ -20,7 +20,7 @@ plugin is installed but its tools are absent, authenticate the configured
 `starcut` server and reload the host's plugin/tool session. Reinstalling the
 same package does not repair a missing OAuth session.
 
-Open TRAE's MCP settings, authorize the StarCut server, then start a new Agent conversation.
+TRAE often has no MCP OAuth UI. Run `node scripts/mcp-manual-oauth.mjs --host trae --write-config`, copy `.agents/skills` into the project, then start a new Agent conversation.
 
 ## Establish the Project
 

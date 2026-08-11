@@ -20,7 +20,7 @@ plugin is installed but its tools are absent, authenticate the configured
 `starcut` server and reload the host's plugin/tool session. Reinstalling the
 same package does not repair a missing OAuth session.
 
-Run `claude mcp login plugin:starcut:starcut` when authentication is required. Start a new Claude Code session after login so the namespaced MCP tools are loaded.
+Run `sh scripts/login-starcut.sh` or `claude mcp login plugin:starcut:starcut` when authentication is required. Start a new Claude Code session after login so the namespaced MCP tools are loaded.
 
 ## Establish the Project
 
