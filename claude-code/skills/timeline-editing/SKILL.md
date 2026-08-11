@@ -198,6 +198,11 @@ not a separate Clip type: represent supported static stickers as `ImageClip`
 and animated ones as `MotionGraphicClip`, then order their Track according to
 whether they should cover captions.
 
+Before creating a generic overlay, query `sticker` or `mg`. When a result fits,
+call `mcp__plugin_starcut_starcut__use_library` with its `libraryId` and the current
+`projectId`, then use the returned `path` as the Clip source. Create a custom
+graphic only when no resource fits or the user requests an original design.
+
 ## Common Clip Timeline
 
 Every Clip has:
@@ -354,23 +359,10 @@ An Effect uses a registered public tag and supports the placements declared by
 that registration. Never write a generic `<Effect>` tag, an internal `source`,
 or `scope`, `target`, `targetId`, `from`, or `to` Attributes.
 
-| Registered tag | Parameters | Defaults |
-|---|---|---|
-| `BlurEffect` | `amount` number, `0..1` | `amount="1"` |
-| `GrayscaleEffect` | `amount` number, `0..1` | `amount="1"` |
-| `VignetteEffect` | `amount` number, `0..1` | `amount="1"` |
-| `ColorAdjustmentEffect` | `exposure` number, `-2..2`; `contrast`, `saturation`, `temperature`, `tint` numbers, `-1..1`; `sharpness` number, `0..1` | `0`, `0.12`, `0.12`, `0`, `0`, `0.2` |
-| `LocalMosaicEffect` | `centerX`, `centerY`, `width`, `height`, `cornerRadius`, `feather` numbers; `size` number in output pixels, `1..128` | `0.5`, `0.5`, `0.4`, `0.25`, `0.05`, `0.02`, `18` |
-| `MagnifyingGlassEffect` | `centerX`, `centerY` numbers, `0..1`; `radius` number, `0.01..1`; `zoom` number, `1..5`; `curvature` number, `0..1`; `feather` number, `0..0.5` | `0.5`, `0.5`, `0.25`, `1.8`, `0`, `0.02` |
-| `ASCIIRainEffect` | `amount`, `density` numbers, `0..1`; `size` number in output pixels, `4..32`; `speed` number, `0..4`; `rainColor` hex color | `0.8`, `0.7`, `12`, `1`, `#00E5FF` |
-| `CRTRetroEffect` | `amount`, `scanlines`, `chromaticAberration`, `vignette` numbers, `0..1`; `curvature` number, `0..0.5` | `0.7`, `0.45`, `0.25`, `0.35`, `0.12` |
-| `ChromaKeyEffect` | `keyColor` hex color; `tolerance` number, `0..1`; `softness` number, `0..0.5`; `spill` number, `0..1` | `#00FF00`, `0.25`, `0.1`, `0.5` |
-| `CircleMaskEffect` | `centerX`, `centerY`, `radius`, `feather` numbers; `invert` boolean | `0.5`, `0.5`, `0.35`, `0.02`, `false` |
-| `RectangleMaskEffect` | `centerX`, `centerY`, `width`, `height`, `cornerRadius`, `feather` numbers; `invert` boolean | `0.5`, `0.5`, `0.75`, `0.75`, `0.05`, `0.02`, `false` |
-| `LinearMaskEffect` | `angle` number in degrees, `-180..180`; `position`, `feather` numbers, `0..1`; `invert` boolean | `0`, `0.5`, `0.1`, `false` |
-| `CameraShakeEffect` | `amount` number, `0..1`; `frequency` number in Hz, `1..20` | `0.5`, `8` |
-| `SlowPushEffect` | `zoom` number, `1..2`; `centerX`, `centerY` numbers, `0..1` | `1.12`, `0.5`, `0.5` |
-| `PunchZoomEffect` | `zoom` number, `1..3`; `centerX`, `centerY` numbers, `0..1` | `1.35`, `0.5`, `0.5` |
+Query `fx`, choose a result, then call `mcp__plugin_starcut_starcut__use_library` with its
+`libraryId` and the current `projectId`. The returned `effect` contains the
+public tag, allowed placements, and current parameters. Use that definition
+instead of memorizing a static Effect catalog.
 
 Every registered Effect tag also has timing control Attributes:
 
@@ -384,9 +376,8 @@ Inside VideoClip or ImageClip, `start` is Clip-local and the effective output is
 clipped to the parent Clip. Sibling Effects may overlap and execute in child order, so order is
 significant. Inside EffectTrack, the Effect is a normal Timeline item; items on
 one EffectTrack cannot overlap, while separate EffectTracks may overlap.
-`CameraShakeEffect`, `SlowPushEffect`, and `PunchZoomEffect` are EffectTrack-only.
-`ChromaKeyEffect` is Clip-only. All other registered Effects support both
-placements.
+Use only a placement returned by `mcp__plugin_starcut_starcut__use_library`; never infer it
+from the Effect name.
 
 An EffectTrack processes the composited Canvas layers below it at its Track
 order within the same Canvas band. It cannot process an HTML MotionGraphic

@@ -14,8 +14,13 @@ Treat decorative graphics as one product category with two authored formats:
 
 ## Workflow
 
-- For a new graphic, use `mcp__starcut__run_task` with `task: "create_svg"` or
-  `task: "create_mg"`.
+- Before creating a generic reusable graphic, query `sticker` for static SVG
+  or `mg` for animated components. If a result fits, call
+  `mcp__starcut__use_library` with its `libraryId` and the current `projectId`,
+  then use the returned editable Artifact. Skip discovery when the user
+  explicitly requests a custom design.
+- When no Library result fits, use `mcp__starcut__run_task` with
+  `task: "create_svg"` or `task: "create_mg"`.
 - Use `mcp__starcut__write` only when the current Agent deliberately authors
   the complete source itself.
 - For an existing graphic, use `mcp__starcut__read` followed by
@@ -46,7 +51,7 @@ reference list contains exact project paths returned by StarCut tools.
 ```
 
 If `mcp__starcut__run_task` returns `monitoring`, call `mcp__starcut__poll`
-with the exact `projectId` and returned `taskId`. Never resubmit the same
+with the exact `projectId` and returned `toolCallId`. Never resubmit the same
 creation request.
 
 ## Edit Existing Source

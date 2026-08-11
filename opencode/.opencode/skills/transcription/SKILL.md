@@ -41,8 +41,8 @@ prepares canonical audio. If it returns `succeeded`, consume the transcript. If
 it returns `prepared`, call `starcut_run_task` once with the returned
 `runTask` value. Merge any chosen `modelId`, `language`, `diarize`, or
 `keyterms` into `runTask.params`. If that Task is still running, call
-`starcut_poll` with its `taskId`; do not call `get_transcript` again to
-poll or start duplicate work.
+`starcut_poll` with its returned `toolCallId`; do not call
+`get_transcript` again to poll or start duplicate work.
 
 ## Get a Transcript
 

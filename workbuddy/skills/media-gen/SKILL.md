@@ -184,6 +184,19 @@ queried model explicitly returns one mode containing both.
 
 ## Music
 
+Before generating a generic music bed, query the curated BGM Library:
+
+```json
+{
+  "kind": "bgm",
+  "where": { "q": "optimistic electronic product launch" }
+}
+```
+
+If a result fits, call `mcp__starcut__use_library` with its `libraryId` and the
+current `projectId`, then use the returned Artifact. Generate only when the
+Library has no suitable result or the user explicitly requests original music.
+
 Music uses `prompt` for genre, mood, instrumentation, tempo, structure, and
 intended use. Common model parameters include `duration` and `instrumental`.
 
@@ -219,8 +232,8 @@ Library:
 }
 ```
 
-If a result fits, call `mcp__starcut__use_library` with the current `projectId`
-and its `libraryId`, then use the returned Artifact. Query `kind: "model"` with
+If a result fits, call `mcp__starcut__use_library` with its `libraryId` and the
+current `projectId`, then use the returned Artifact. Query `kind: "model"` with
 intent `audio.sfx` and generate only when the Library has no suitable result.
 
 Sound effects use `prompt` for the audible event, environment, perspective,
@@ -281,7 +294,8 @@ submit provider encoding parameters.
 
 `mcp__starcut__run_task` returns stable Task and Artifact identities without
 waiting for generation to finish. If the workflow depends on progress or
-output, call `mcp__starcut__poll` with the exact `projectId` and `taskId`.
+output, call `mcp__starcut__poll` with the exact `projectId` and returned
+`toolCallId`.
 Never resubmit a queued or running Task.
 
 Generation does not place media on a timeline. When placement is requested,

@@ -61,7 +61,11 @@ assets/
   logo.svg
   lower-third.mg
 docs/
+  brief.md
   script.md
+  storyboard.md
+  shot-list.md
+  edit-plan.md
 compositions/
   main.vml
 ```
@@ -69,7 +73,7 @@ compositions/
 | Path | Content | Purpose |
 |---|---|---|
 | `project.json` | JSON | System-owned Project metadata |
-| `docs/*.md` | Markdown | Reusable editable text |
+| `docs/*.md` | Markdown | Editorial planning and reusable text |
 | `compositions/*.vml` | Composition VML | Editable Timelines |
 | `assets/*` | media, SVG, or MG | Project Artifacts |
 
@@ -93,6 +97,25 @@ Binary Artifacts can be referenced and inspected but not changed with
 source files. SVG and MG are text Artifacts. Editing any source file keeps the
 same project path, so existing references remain valid.
 
+### Editorial Documents
+
+Treat `docs/` as the Agent-facing editorial view of the project, not as a
+second Timeline model. Use clear production-oriented files when they help:
+
+| Suggested path | Purpose |
+|---|---|
+| `docs/brief.md` | Goal, audience, format, tone, constraints, and deliverables |
+| `docs/script.md` | Narration, dialogue, on-screen copy, and structural beats |
+| `docs/storyboard.md` | Ordered scenes or beats with timing intent, visuals, audio, and referenced `assets/*` paths |
+| `docs/shot-list.md` | Available shots, selects, source ranges, and missing material |
+| `docs/edit-plan.md` | Mapping from story beats to Timeline structure, pacing, graphics, transitions, and sound |
+| `docs/review-notes.md` | Decisions, requested changes, and unresolved questions |
+
+Create only the documents the work needs. Keep decisions in one relevant file
+instead of duplicating them across several. A storyboard or edit plan describes
+editorial intent; `compositions/*.vml` remains authoritative for exact Clip
+timing, Track order, effects, and render settings.
+
 ## Discover and Read
 
 | Need | Tool |
@@ -103,7 +126,7 @@ same project path, so existing references remain valid.
 | Read one VML, Markdown, SVG, or MG file | `mcp__plugin_starcut_starcut__read` |
 | Read one VML Node | `mcp__plugin_starcut_starcut__read` with `path` and `nodeId` |
 | Inspect file or Artifact metadata | `mcp__plugin_starcut_starcut__head` |
-| Inspect models, fonts, or reusable SFX | `mcp__plugin_starcut_starcut__query` |
+| Inspect models, fonts, or reusable Library/FX resources | `mcp__plugin_starcut_starcut__query` |
 
 Useful `mcp__plugin_starcut_starcut__glob` patterns include:
 
@@ -141,14 +164,20 @@ search Artifact content or metadata.
 |---|---|
 | `model` | Resolve live model capabilities for one intent |
 | `font` | Find curated fonts and supported weights, styles, and subsets |
+| `bgm` | Find reusable background music before generating new music |
 | `sfx` | Find reusable sound effects before generating a new one |
+| `fx` | Find registered visual Effects and their tags, placements, and parameters |
+| `mg` | Find reusable animated Motion Graphic components |
+| `sticker` | Find reusable static SVG stickers |
 
 Reuse compatible results already present in the conversation. Query again only
 when the previous result does not cover the current intent or filters.
 
-An SFX result is not yet a project file. When it is needed, call
-`mcp__plugin_starcut_starcut__use_library` with its `libraryId` and the current `projectId`,
-then use the returned `assets/*` path.
+Every resource result has a `libraryId`. After choosing one, call
+`mcp__plugin_starcut_starcut__use_library` with that ID and the current `projectId`. Use a
+returned `path` as a Clip source, or a returned `effect` definition in a
+compatible Clip or `EffectTrack`. Resource storage and sharing scope are
+server concerns; do not infer behavior from the ID.
 
 ## Write and Update
 
@@ -277,13 +306,14 @@ changing graphic source.
 
 Use `mcp__plugin_starcut_starcut__run_task` for media generation, SVG/MG generation, and ASR.
 If it returns `monitoring`, call `mcp__plugin_starcut_starcut__poll` with the exact `projectId`
-and returned `taskId`; never resubmit the same request merely because it is
+and returned `toolCallId`; never resubmit the same request merely because it is
 still running.
 
 Only `mcp__plugin_starcut_starcut__run_task` and `mcp__plugin_starcut_starcut__client_call` are pollable. A
-deferred `mcp__plugin_starcut_starcut__client_call` returns a `callId`; pass that `callId` to
-`mcp__plugin_starcut_starcut__poll`. Project file and Node tools such as
-`mcp__plugin_starcut_starcut__glob`, `mcp__plugin_starcut_starcut__head`, `mcp__plugin_starcut_starcut__read`,
+deferred operation returns a `toolCallId`; pass that same `toolCallId` to
+`mcp__plugin_starcut_starcut__poll`. `taskId` and `callId` remain compatibility aliases for
+older clients, not separate identities for new workflows. Project file and
+Node tools such as `mcp__plugin_starcut_starcut__glob`, `mcp__plugin_starcut_starcut__head`, `mcp__plugin_starcut_starcut__read`,
 `mcp__plugin_starcut_starcut__write`, and `mcp__plugin_starcut_starcut__edit` return a terminal result and
 never return `monitoring`.
 
