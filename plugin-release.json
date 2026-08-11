@@ -2,7 +2,8 @@
   "schemaVersion": 1,
   "source": {
     "repository": "https://github.com/starrank-soft/starcut-monorepo",
-    "path": "plugins/starcut"
+    "path": "plugins/starcut",
+    "revision": "02e6436cf313f0c02d330cbae8584705e24aa3ae"
   },
   "version": "0.3.0",
   "hosts": [

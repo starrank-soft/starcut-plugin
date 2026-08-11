@@ -154,18 +154,19 @@ search Artifact content or metadata.
 | `font` | Find curated fonts and supported weights, styles, and subsets |
 | `bgm` | Find reusable background music before generating new music |
 | `sfx` | Find reusable sound effects before generating a new one |
-| `fx` | Find registered visual Effects and their tags, placements, and parameters |
+| `fx` | Find reusable visual Effect candidates |
 | `mg` | Find reusable animated Motion Graphic components |
 | `sticker` | Find reusable static SVG stickers |
 
 Reuse compatible results already present in the conversation. Query again only
 when the previous result does not cover the current intent or filters.
 
-Every resource result has a `libraryId`. After choosing one, call
+Consume `model` and `font` results directly. Results for `bgm`, `sfx`, `fx`,
+`mg`, and `sticker` have a `libraryId`; after choosing one, call
 `use_library` with that ID and the current `projectId`. Use a
-returned `path` as a Clip source, or a returned `effect` definition in a
-compatible Clip or `EffectTrack`. Resource storage and sharing scope are
-server concerns; do not infer behavior from the ID.
+returned `path` as a Clip source, or the returned FX tag, placements, and
+parameters in a compatible Clip or `EffectTrack`. Resource storage and sharing
+scope are server concerns; do not infer behavior from the ID.
 
 ## Write and Update
 
