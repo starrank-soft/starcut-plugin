@@ -3,11 +3,11 @@
   "source": {
     "repository": "https://github.com/starrank-soft/starcut-monorepo",
     "path": "plugins/starcut",
-    "revision": "8075ab99f3dba5d30b0a20e8439a7527b6bd41b1"
+    "revision": "b10fc6c07c39fc3f7e35576841298735791dc2d7"
   },
   "version": "0.3.0",
   "hosts": [
-    "codex",
+    "chatgpt",
     "claude-code",
     "grok-build",
     "cursor",
