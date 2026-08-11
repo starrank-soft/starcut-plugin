@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "starcut": {
+      "type": "http",
+      "url": "https://api.starcut.io/mcp"
+    }
+  }
+}

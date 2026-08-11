@@ -1,0 +1,33 @@
+{
+  "name": "starcut",
+  "version": "0.3.0",
+  "description": "Connect Kimi Code to StarCut for editable video workflows.",
+  "author": {
+    "name": "StarRank Soft",
+    "url": "https://starcut.io"
+  },
+  "homepage": "https://starcut.io",
+  "repository": "https://github.com/starrank-soft/starcut-plugin",
+  "license": "MIT",
+  "keywords": [
+    "starcut",
+    "video",
+    "video-editing",
+    "timeline",
+    "kimi-code",
+    "mcp"
+  ],
+  "skills": "./kimi-code/skills/",
+  "mcpServers": {
+    "starcut": {
+      "url": "https://api.starcut.io/mcp"
+    }
+  },
+  "interface": {
+    "displayName": "StarCut",
+    "shortDescription": "Create and edit videos in StarCut",
+    "longDescription": "Inspect StarCut projects, edit timelines, create graphics and captions, manage media, and export videos.",
+    "developerName": "StarRank Soft",
+    "websiteURL": "https://starcut.io"
+  }
+}

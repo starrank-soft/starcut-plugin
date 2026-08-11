@@ -1,0 +1,16 @@
+{
+  "name": "starcut",
+  "owner": {
+    "name": "StarRank Soft"
+  },
+  "metadata": {
+    "description": "StarCut plugin for Cursor."
+  },
+  "plugins": [
+    {
+      "name": "starcut",
+      "source": "cursor",
+      "description": "Editable video workflows in StarCut."
+    }
+  ]
+}

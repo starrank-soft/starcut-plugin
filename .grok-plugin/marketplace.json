@@ -1,0 +1,26 @@
+{
+  "name": "starcut",
+  "description": "StarCut plugins for Grok Build.",
+  "owner": {
+    "name": "StarRank Soft",
+    "url": "https://starcut.io"
+  },
+  "plugins": [
+    {
+      "name": "starcut",
+      "source": "./grok-build",
+      "description": "Editable video workflows in StarCut.",
+      "category": "design",
+      "homepage": "https://starcut.io",
+      "keywords": [
+        "video",
+        "editing",
+        "timeline",
+        "motion-graphics"
+      ],
+      "domains": [
+        "starcut.io"
+      ]
+    }
+  ]
+}

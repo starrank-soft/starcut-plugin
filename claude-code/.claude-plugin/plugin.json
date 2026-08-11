@@ -1,0 +1,28 @@
+{
+  "name": "starcut",
+  "version": "0.3.0",
+  "description": "Connect Claude Code to StarCut for editable video workflows.",
+  "author": {
+    "name": "StarRank Soft",
+    "url": "https://starcut.io"
+  },
+  "homepage": "https://starcut.io",
+  "repository": "https://github.com/starrank-soft/starcut-plugin",
+  "license": "MIT",
+  "keywords": [
+    "starcut",
+    "video",
+    "video-editing",
+    "timeline",
+    "claude-code",
+    "mcp"
+  ],
+  "mcpServers": {
+    "starcut": {
+      "type": "http",
+      "oauth_resource": "https://api.starcut.io/mcp",
+      "url": "https://api.starcut.io/mcp"
+    }
+  },
+  "skills": "./skills/"
+}

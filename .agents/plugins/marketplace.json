@@ -8,7 +8,7 @@
       "name": "starcut",
       "source": {
         "source": "local",
-        "path": "./chatgpt"
+        "path": "./codex"
       },
       "policy": {
         "installation": "AVAILABLE",

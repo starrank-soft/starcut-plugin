@@ -1,0 +1,15 @@
+{
+  "name": "starcut",
+  "description": "StarCut plugins for Claude Code.",
+  "owner": {
+    "name": "StarRank Soft",
+    "url": "https://starcut.io"
+  },
+  "plugins": [
+    {
+      "name": "starcut",
+      "source": "./claude-code",
+      "description": "Editable video workflows in StarCut."
+    }
+  ]
+}

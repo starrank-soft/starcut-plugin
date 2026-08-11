@@ -1,0 +1,40 @@
+{
+  "name": "starcut",
+  "version": "0.3.0",
+  "description": "Connect Codex and ChatGPT to StarCut through its MCP server.",
+  "author": {
+    "name": "StarRank Soft",
+    "url": "https://starcut.io"
+  },
+  "homepage": "https://starcut.io",
+  "repository": "https://github.com/starrank-soft/starcut-plugin",
+  "license": "MIT",
+  "keywords": [
+    "starcut",
+    "video",
+    "video-editing",
+    "timeline",
+    "codex",
+    "mcp"
+  ],
+  "mcpServers": "./.mcp.json",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "StarCut",
+    "shortDescription": "Create and edit videos in StarCut from Codex",
+    "longDescription": "Connect Codex to StarCut's MCP server to inspect projects, edit timelines, create motion graphics and captions, manage media, and export videos.",
+    "developerName": "StarRank Soft",
+    "category": "Design",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://starcut.io",
+    "defaultPrompt": [
+      "Open my StarCut project",
+      "Edit my StarCut timeline",
+      "Add captions to my video"
+    ],
+    "brandColor": "#7C5CFC"
+  }
+}
