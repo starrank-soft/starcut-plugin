@@ -1,13 +1,13 @@
 # StarCut Agent Plugin
 
-The official StarCut agent plugin repository for Codex and ChatGPT, Claude
+The official StarCut agent plugin repository for ChatGPT and Codex, Claude
 Code, Grok Build, Cursor, Kimi Code, WorkBuddy/CodeBuddy, TRAE, and OpenCode.
 Every package connects to
 `https://api.starcut.io/mcp` and authenticates through StarCut OAuth.
 
 ## Install
 
-### Codex and ChatGPT
+### ChatGPT and Codex
 
 ```bash
 codex plugin marketplace add https://github.com/starrank-soft/starcut-plugin.git --ref main
@@ -87,13 +87,13 @@ opencode mcp auth starcut
 ## Repository Layout
 
 ```text
-.agents/plugins/marketplace.json     Codex and ChatGPT marketplace
+.agents/plugins/marketplace.json     ChatGPT and Codex marketplace
 .claude-plugin/marketplace.json      Claude Code marketplace
 .grok-plugin/marketplace.json        Grok Build marketplace
 .cursor-plugin/marketplace.json      Cursor marketplace
 .codebuddy-plugin/marketplace.json   WorkBuddy/CodeBuddy marketplace
 .kimi-plugin/plugin.json             Kimi Code repository manifest
-codex/                               Codex and ChatGPT package
+chatgpt/                             ChatGPT and Codex package
 claude-code/                         Claude Code package
 grok-build/                          Grok Build package
 cursor/                              Cursor package
