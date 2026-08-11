@@ -1,6 +1,6 @@
 ---
 name: timeline-editing
-description: Use when creating or editing StarCut Timelines, including Composition VML, Track and Clip schemas, media placement, timing, layering, transforms, crop, color, fades, text, and captions.
+description: Use when creating or editing StarCut Timelines, including Composition VML, Track and Clip schemas, media placement, timing, layering, effects, transforms, crop, color, fades, text, and captions.
 ---
 
 # Timeline Editing
@@ -18,13 +18,17 @@ A Timeline has this public VML shape:
 Composition
 ├── VideoTrack
 │   ├── VideoClip
+│   │   └── registered Effect tag
 │   ├── ImageClip
+│   │   └── registered Effect tag
 │   └── MotionGraphicClip
 ├── AudioTrack
 │   └── AudioClip
-└── TextTrack
+├── TextTrack
     ├── TextClip
     └── CaptionClip
+└── EffectTrack
+    └── registered Effect tag
 ```
 
 Tracks and Clips are direct ordered children. There are no `Tracks`, `Clips`,
@@ -75,7 +79,9 @@ Tracks and Clips are direct ordered children. There are no `Tracks`, `Clips`,
       duration="8000000"
       sourceStart="0"
       sourceDuration="8000000"
-    />
+    >
+      <VignetteEffect amount="0.7" />
+    </VideoClip>
   </VideoTrack>
 
   <VideoTrack name="B-Roll">
@@ -101,6 +107,10 @@ Tracks and Clips are direct ordered children. There are no `Tracks`, `Clips`,
 <p begin="0.000" end="1.500">The story begins.</p>
 ]]></CaptionClip>
   </TextTrack>
+
+  <EffectTrack name="Look">
+    <VignetteEffect start="0" duration="5000000" amount="0.7" />
+  </EffectTrack>
 </Composition>
 ```
 
@@ -142,7 +152,7 @@ Every Track has these common Attributes:
 | `volume` | number, `0..1` | `1` | Aggregate Track audio gain |
 | `mute` | boolean | `false` | Aggregate Track audio mute |
 
-`TextTrack` has no `volume` or `mute` Attributes.
+`TextTrack` and `EffectTrack` have no `volume` or `mute` Attributes.
 
 ### Track Compatibility
 
@@ -151,12 +161,13 @@ Every Track has these common Attributes:
 | `VideoTrack` | `VideoClip`, `ImageClip`, `MotionGraphicClip` |
 | `AudioTrack` | `AudioClip` |
 | `TextTrack` | `TextClip`, `CaptionClip` |
+| `EffectTrack` | registered Effect tags that allow Track placement |
 
 Putting a child on an incompatible Track is invalid.
 
 Composition child order is back-to-front for visual compositing: a later
-visual Track appears above an earlier visual Track. Timeline UI rows may display
-that order in reverse, front-to-back.
+visual Track appears above an earlier visual Track. Timeline UI rows may
+display that order in reverse, front-to-back.
 
 ### Layering and Track Planning
 
@@ -168,7 +179,7 @@ Plan Track order before writing Clips. A useful default VML order is:
 | 2 | A-roll / main visual | Base picture beneath every visual overlay |
 | 3 | B-roll | Covers A-roll only over its active range |
 | 4 | Motion graphics / image overlays | Lower thirds, callouts, and decorative overlays |
-| 5 | Titles and captions | Readable foreground text |
+| 5 | Titles and captions | Readable foreground text above picture overlays |
 | 6 | Foreground image or MG overlays | Only when they intentionally cover text |
 
 This is a default, not a fixed set of Track types. The invariant is simpler:
@@ -337,6 +348,52 @@ Crop Attributes as VideoClip. It also supports visual `fadeInDuration` and
 |---|---|---:|
 | `fadeInDuration`, `fadeOutDuration` | optional integer microseconds, `>= 0` | omitted |
 
+## Effects
+
+An Effect uses a registered public tag and supports the placements declared by
+that registration. Never write a generic `<Effect>` tag, an internal `source`,
+or `scope`, `target`, `targetId`, `from`, or `to` Attributes.
+
+| Registered tag | Parameters | Defaults |
+|---|---|---|
+| `BlurEffect` | `amount` number, `0..1` | `amount="1"` |
+| `GrayscaleEffect` | `amount` number, `0..1` | `amount="1"` |
+| `VignetteEffect` | `amount` number, `0..1` | `amount="1"` |
+| `ColorAdjustmentEffect` | `exposure` number, `-2..2`; `contrast`, `saturation`, `temperature`, `tint` numbers, `-1..1`; `sharpness` number, `0..1` | `0`, `0.12`, `0.12`, `0`, `0`, `0.2` |
+| `LocalMosaicEffect` | `centerX`, `centerY`, `width`, `height`, `cornerRadius`, `feather` numbers; `size` number in output pixels, `1..128` | `0.5`, `0.5`, `0.4`, `0.25`, `0.05`, `0.02`, `18` |
+| `MagnifyingGlassEffect` | `centerX`, `centerY` numbers, `0..1`; `radius` number, `0.01..1`; `zoom` number, `1..5`; `curvature` number, `0..1`; `feather` number, `0..0.5` | `0.5`, `0.5`, `0.25`, `1.8`, `0`, `0.02` |
+| `ASCIIRainEffect` | `amount`, `density` numbers, `0..1`; `size` number in output pixels, `4..32`; `speed` number, `0..4`; `rainColor` hex color | `0.8`, `0.7`, `12`, `1`, `#00E5FF` |
+| `CRTRetroEffect` | `amount`, `scanlines`, `chromaticAberration`, `vignette` numbers, `0..1`; `curvature` number, `0..0.5` | `0.7`, `0.45`, `0.25`, `0.35`, `0.12` |
+| `ChromaKeyEffect` | `keyColor` hex color; `tolerance` number, `0..1`; `softness` number, `0..0.5`; `spill` number, `0..1` | `#00FF00`, `0.25`, `0.1`, `0.5` |
+| `CircleMaskEffect` | `centerX`, `centerY`, `radius`, `feather` numbers; `invert` boolean | `0.5`, `0.5`, `0.35`, `0.02`, `false` |
+| `RectangleMaskEffect` | `centerX`, `centerY`, `width`, `height`, `cornerRadius`, `feather` numbers; `invert` boolean | `0.5`, `0.5`, `0.75`, `0.75`, `0.05`, `0.02`, `false` |
+| `LinearMaskEffect` | `angle` number in degrees, `-180..180`; `position`, `feather` numbers, `0..1`; `invert` boolean | `0`, `0.5`, `0.1`, `false` |
+| `CameraShakeEffect` | `amount` number, `0..1`; `frequency` number in Hz, `1..20` | `0.5`, `8` |
+| `SlowPushEffect` | `zoom` number, `1..2`; `centerX`, `centerY` numbers, `0..1` | `1.12`, `0.5`, `0.5` |
+| `PunchZoomEffect` | `zoom` number, `1..3`; `centerX`, `centerY` numbers, `0..1` | `1.35`, `0.5`, `0.5` |
+
+Every registered Effect tag also has timing control Attributes:
+
+| Attribute | Type and constraint | Default | Meaning |
+|---|---|---:|---|
+| `enabled` | boolean | `true` | Whether the Effect participates |
+| `start` | integer microseconds, `>= 0` | `0` | Clip-local when nested in a Clip; Timeline-global in EffectTrack |
+| `duration` | optional integer microseconds, `>= 1` | omitted | Through the parent Clip end when omitted; required in EffectTrack |
+
+Inside VideoClip or ImageClip, `start` is Clip-local and the effective output is
+clipped to the parent Clip. Sibling Effects may overlap and execute in child order, so order is
+significant. Inside EffectTrack, the Effect is a normal Timeline item; items on
+one EffectTrack cannot overlap, while separate EffectTracks may overlap.
+`CameraShakeEffect`, `SlowPushEffect`, and `PunchZoomEffect` are EffectTrack-only.
+`ChromaKeyEffect` is Clip-only. All other registered Effects support both
+placements.
+
+An EffectTrack processes the composited Canvas layers below it at its Track
+order within the same Canvas band. It cannot process an HTML MotionGraphic
+surface across a band boundary. Keep an HTML-only effect inside a
+MotionGraphic, or compile that source when one Effect must process it together
+with Canvas content.
+
 ## AudioClip
 
 AudioClip supports:
@@ -478,9 +535,10 @@ animation; MotionGraphicClip has no dedicated fade Attributes.
   are not already in context.
 - Use `mcp__starcut__update_node` for Clip or Track Attributes and for exact
   TextClip or CaptionClip Text Data replacement.
-- Use `mcp__starcut__add_node` on a Composition to add a Track, or on a Track
-  to add one compatible Clip. Use `beforeId` only for an intentional ordered
-  insertion.
+- Use `mcp__starcut__add_node` on a Composition to add a Track, on a Track to
+  add one compatible Clip, or on a VideoClip or ImageClip to add a registered
+  Effect tag.
+  Use `beforeId` only for an intentional ordered insertion.
 - Use `mcp__starcut__move_node` to reorder a Node or move it to a compatible
   parent. Never write internal owner or order fields.
 - Use `mcp__starcut__delete_node` only after removing inbound references and
@@ -491,7 +549,9 @@ animation; MotionGraphicClip has no dedicated fade Attributes.
   `source`. An SVG/MG edit at the existing path needs no Clip change.
 - Keep timing, source ranges, transforms, crop, audio, fades, typography,
   decoration, and caption motion as flat Attributes on their owning Node. Do
-  not create wrapper child Nodes.
+  not create wrapper child Nodes. Each registered Effect tag creates a real
+  child Node, while its parameters, `start`, and `duration` remain flat
+  Attributes.
 
 Read the affected Node when a later mutation needs a generated ID or resulting
 Text Data. Inspect the composed Timeline when timing, placement, animation,

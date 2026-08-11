@@ -1,9 +1,37 @@
 ---
 name: media-import
-description: Use when importing local image, video, audio, or document files that the host agent can read into a StarCut project Artifact library.
+description: Use when finding license-compatible image, video, music, or sound-effect media on the web, downloading it for one StarCut project, or importing local image, video, audio, or document files that the host agent can read into a StarCut project Artifact library.
 ---
 
 # StarCut Media Import
+
+## Find Media on the Web
+
+Use the host's web search or browser tools when the user asks for stock media
+but has not supplied a file. Keep discovery outside StarCut: remote results are
+not Library items and become project Media only after import.
+
+1. Search for media matching the requested subject, style, duration, aspect
+   ratio, and technical quality.
+2. Open the original source page. Prefer public-domain, CC0, or clearly stated
+   licenses that permit the user's intended video use. Do not infer permission
+   from "free download" or from appearance in search results.
+3. Record the source page, creator, and license URL. Reject watermarked
+   previews, unclear licenses, login-gated files, and sources that require
+   bypassing access controls.
+4. Download the intended original or an appropriate production rendition to a
+   temporary local directory with the host's normal download facilities.
+5. Inspect the downloaded file's actual type, size, duration, and dimensions
+   when relevant. Do not import an HTML error page, search thumbnail, or audio
+   preview in place of the selected media.
+6. Import the local file with the workflow below. Report its source and license
+   links with the result so the user can retain the provenance.
+
+Never publish web-discovered media into the system-owned StarCut Library. That
+catalog has a separate, reviewed publishing process. This workflow imports only
+into the current Project's Media.
+
+## Import Local Files
 
 Import local files through a short-lived, project-scoped upload session. MCP
 creates only the control-plane session. File bytes go from the local helper

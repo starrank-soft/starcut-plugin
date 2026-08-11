@@ -1,6 +1,6 @@
 ---
 name: media-import
-description: Use when finding license-compatible image, video, music, or sound-effect media on the web, downloading it for one StarCut project, or importing local image, video, audio, or document files that the host agent can read into a project Artifact library.
+description: Use when finding license-compatible image, video, music, or sound-effect media on the web, downloading it for one StarCut project, or importing local image, video, audio, or document files that the host agent can read into a StarCut project Artifact library.
 ---
 
 # StarCut Media Import
