@@ -64,8 +64,6 @@ docs/
   brief.md
   script.md
   storyboard.md
-  shot-list.md
-  edit-plan.md
 compositions/
   main.vml
 ```
@@ -99,22 +97,12 @@ same project path, so existing references remain valid.
 
 ### Editorial Documents
 
-Treat `docs/` as the Agent-facing editorial view of the project, not as a
-second Timeline model. Use clear production-oriented files when they help:
-
-| Suggested path | Purpose |
-|---|---|
-| `docs/brief.md` | Goal, audience, format, tone, constraints, and deliverables |
-| `docs/script.md` | Narration, dialogue, on-screen copy, and structural beats |
-| `docs/storyboard.md` | Ordered scenes or beats with timing intent, visuals, audio, and referenced `assets/*` paths |
-| `docs/shot-list.md` | Available shots, selects, source ranges, and missing material |
-| `docs/edit-plan.md` | Mapping from story beats to Timeline structure, pacing, graphics, transitions, and sound |
-| `docs/review-notes.md` | Decisions, requested changes, and unresolved questions |
-
-Create only the documents the work needs. Keep decisions in one relevant file
-instead of duplicating them across several. A storyboard or edit plan describes
-editorial intent; `compositions/*.vml` remains authoritative for exact Clip
-timing, Track order, effects, and render settings.
+Treat `docs/` as optional Agent-facing editorial material, not as a second
+Timeline model. The names in the project tree are examples, not required files.
+Read existing documents first. Create one only when the work needs durable
+planning or reusable text; do not scaffold documents by default.
+`compositions/*.vml` remains authoritative for exact Clip timing, Track order,
+effects, and render settings.
 
 ## Discover and Read
 
