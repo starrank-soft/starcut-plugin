@@ -3,7 +3,7 @@
   "source": {
     "repository": "https://github.com/starrank-soft/starcut-monorepo",
     "path": "plugins/starcut",
-    "revision": "02e6436cf313f0c02d330cbae8584705e24aa3ae"
+    "revision": "8075ab99f3dba5d30b0a20e8439a7527b6bd41b1"
   },
   "version": "0.3.0",
   "hosts": [
@@ -13,9 +13,7 @@
     "cursor",
     "kimi-code",
     "workbuddy",
-    "qoder",
     "trae",
-    "github-copilot",
     "opencode"
   ]
 }

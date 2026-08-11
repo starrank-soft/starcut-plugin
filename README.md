@@ -1,8 +1,8 @@
 # StarCut Agent Plugin
 
 The official StarCut agent plugin repository for Codex and ChatGPT, Claude
-Code, Grok Build, Cursor, Kimi Code, WorkBuddy/CodeBuddy, Qoder, TRAE, GitHub
-Copilot CLI, and OpenCode. Every package connects to
+Code, Grok Build, Cursor, Kimi Code, WorkBuddy/CodeBuddy, TRAE, and OpenCode.
+Every package connects to
 `https://api.starcut.io/mcp` and authenticates through StarCut OAuth.
 
 ## Install
@@ -67,16 +67,6 @@ codebuddy plugin install starcut@starcut
 For guided installation, open `https://starcut.io/workbuddy.md` in WorkBuddy
 or CodeBuddy.
 
-### Qoder
-
-```bash
-qodercli plugins marketplace add https://raw.githubusercontent.com/starrank-soft/starcut-plugin/main/qoder-marketplace.json
-qodercli plugins install starcut
-```
-
-Run `/plugins reload` after installation. Open `/mcp` to complete StarCut OAuth
-if Qoder requests authorization.
-
 ### TRAE
 
 Copy `trae/.agents` and `trae/.trae` into the project root. If either hidden
@@ -84,15 +74,6 @@ directory already exists, merge its contents. Open TRAE's MCP settings,
 authorize StarCut, and start a new Agent conversation.
 
 For guided installation, open `https://starcut.io/trae.md` in TRAE.
-
-### GitHub Copilot CLI
-
-```bash
-copilot plugin marketplace add starrank-soft/starcut-plugin
-copilot plugin install starcut@starcut
-```
-
-Open `/mcp` to complete StarCut OAuth if Copilot requests authorization.
 
 ### OpenCode
 
@@ -111,18 +92,14 @@ opencode mcp auth starcut
 .grok-plugin/marketplace.json        Grok Build marketplace
 .cursor-plugin/marketplace.json      Cursor marketplace
 .codebuddy-plugin/marketplace.json   WorkBuddy/CodeBuddy marketplace
-.github/plugin/marketplace.json      GitHub Copilot CLI marketplace
 .kimi-plugin/plugin.json             Kimi Code repository manifest
-qoder-marketplace.json               Qoder marketplace
 codex/                               Codex and ChatGPT package
 claude-code/                         Claude Code package
 grok-build/                          Grok Build package
 cursor/                              Cursor package
 kimi-code/                           Kimi Code skills
 workbuddy/                           WorkBuddy/CodeBuddy package
-qoder/                               Qoder package
 trae/                                TRAE project bundle
-github-copilot/                      GitHub Copilot CLI package
 opencode/                            OpenCode project bundle
 ```
 
