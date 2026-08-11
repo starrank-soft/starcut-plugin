@@ -24,6 +24,8 @@ claude plugin marketplace add starrank-soft/starcut-plugin
 claude plugin install starcut@starcut
 ```
 
+For guided installation, open `https://starcut.io/claude.md` in Claude Code.
+
 ### Grok Build
 
 ```bash
@@ -41,6 +43,8 @@ the coding-agent skills in this repository.
 The package under `cursor/` follows the Cursor plugin specification and is
 ready for marketplace submission. For local testing, link or copy that package
 to `~/.cursor/plugins/local/starcut/` and reload Cursor.
+
+For guided installation, open `https://starcut.io/cursor.md` in Cursor Agent.
 
 ### Kimi Code
 
@@ -60,6 +64,9 @@ codebuddy plugin marketplace add starrank-soft/starcut-plugin
 codebuddy plugin install starcut@starcut
 ```
 
+For guided installation, open `https://starcut.io/workbuddy.md` in WorkBuddy
+or CodeBuddy.
+
 ### Qoder
 
 ```bash
@@ -75,6 +82,8 @@ if Qoder requests authorization.
 Copy `trae/.agents` and `trae/.trae` into the project root. If either hidden
 directory already exists, merge its contents. Open TRAE's MCP settings,
 authorize StarCut, and start a new Agent conversation.
+
+For guided installation, open `https://starcut.io/trae.md` in TRAE.
 
 ### GitHub Copilot CLI
 

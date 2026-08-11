@@ -11,10 +11,14 @@ directly to object storage and never pass through an MCP tool call.
 
 1. Establish the exact project with `starcut__list_projects`,
    `starcut__create_project`, or `starcut__open_project`.
-2. If `starcut__create_project` or `starcut__open_project` returns
-   `browserHandoff.url`, open it immediately and confirm the editor loaded
-   before importing. Do not inspect, hash, or upload files while its one-time
-   handoff is still unopened.
+2. Confirm the editor is loaded before importing. When
+   `starcut__create_project` or `starcut__open_project` returns
+   `browserHandoff.url` and the host exposes a trusted browser or navigation
+   surface, open that exact URL immediately and wait until the editor loads.
+   If the host has no trusted browser surface, never print the handoff token;
+   ask the user to open the stable `editorUrl` and continue only after they
+   confirm the editor loaded. Do not inspect, hash, or upload files while a
+   one-time handoff is still unopened on a browser-capable host.
 3. Call `starcut__import_media` once with the exact `projectId`.
 4. Use Node.js 18 or newer from the host runtime or `PATH`. When the host offers
    a bundled dependency resolver, prefer its Node runtime without installing a
