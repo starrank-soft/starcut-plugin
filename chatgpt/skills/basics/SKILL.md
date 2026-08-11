@@ -20,7 +20,7 @@ plugin is installed but its tools are absent, authenticate the configured
 `starcut` server and reload the host's plugin/tool session. Reinstalling the
 same package does not repair a missing OAuth session.
 
-Open `/mcp` and authorize the StarCut server when prompted. Run `/plugins reload` or start a new Qoder session afterwards.
+Complete the StarCut OAuth prompt shown during plugin installation. Start a new ChatGPT or Codex conversation after authentication so the MCP tool catalog is rebuilt.
 
 ## Establish the Project
 
