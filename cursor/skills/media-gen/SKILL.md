@@ -47,7 +47,8 @@ read:
 
 - `inputModes` for valid combinations of first, last, and reference media;
 - each slot's `role`, `mediaKind`, and `max`;
-- `textInput.maxCharacters` for the hard primary `prompt` or `text` limit;
+- `textInput`, when present, for the hard primary `prompt` or `text` limit;
+  compare `maxUnits` using its declared `unit`;
 - `params` for exact parameter keys, types, choices, defaults, and limits;
 - `features` for model-specific capabilities.
 
@@ -203,7 +204,7 @@ Music uses `prompt` for genre, mood, instrumentation, tempo, structure, and
 intended use. Common model parameters include `duration` and `instrumental`.
 Summarize the musical direction instead of pasting a script, document, or
 storyboard into `prompt`. Prefer at most 300 characters even when the queried
-model allows more, and never exceed `textInput.maxCharacters`.
+model allows more. Never exceed the queried `textInput` limit when present.
 
 ```json
 {
@@ -272,9 +273,12 @@ from `query`; `voice` is a catalog value, not free-form text.
 
 Do not send a complete long script in one Task. Preserve the exact authored
 copy, split it at paragraph or sentence boundaries, and generate one ordered
-Artifact per chunk. Prefer chunks of at most 500 characters and never exceed
-the selected model's `textInput.maxCharacters`. If one sentence is too long,
-split at clause punctuation without rewriting or dropping text.
+Artifact per chunk. Keep each chunk around 500 characters: up to 500 is the
+comfortable range; above 500 and below 1000 may preserve a semantic unit but
+is more likely to be slow; 1000 or more should be split even when the model's
+hard limit is larger. A lower queried `textInput` limit always wins. If one
+sentence is too long, split at clause punctuation without rewriting or
+dropping text.
 
 ```json
 {
