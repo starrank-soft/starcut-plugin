@@ -212,28 +212,52 @@ async function exchangeCode({
   });
 }
 
-async function verifyInitialize(mcpUrl, accessToken) {
-  const response = await fetch(mcpUrl, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json, text/event-stream',
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'initialize',
-      params: {
-        protocolVersion: '2024-11-05',
-        capabilities: {},
-        clientInfo: { name: 'starcut-manual-oauth', version: '1.0.0' },
+async function verifyInitialize(mcpUrl, accessToken, timeoutMs = 15_000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(mcpUrl, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json, text/event-stream',
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
       },
-    }),
-  });
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`MCP initialize failed (${response.status}): ${text}`);
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'initialize',
+        params: {
+          protocolVersion: '2024-11-05',
+          capabilities: {},
+          clientInfo: { name: 'starcut-manual-oauth', version: '1.0.0' },
+        },
+      }),
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`MCP initialize failed (${response.status}): ${text}`);
+    }
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`MCP initialize timed out after ${timeoutMs}ms`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function printTokenSummary(clientId, tokens) {
+  console.log('\nOAuth succeeded.');
+  console.log(`CLIENT_ID=${clientId}`);
+  console.log(`ACCESS_TOKEN=${tokens.access_token}`);
+  if (tokens.refresh_token) {
+    console.log(`REFRESH_TOKEN=${tokens.refresh_token}`);
+  }
+  if (tokens.expires_in) {
+    console.log(`EXPIRES_IN=${tokens.expires_in}`);
   }
 }
 
@@ -321,18 +345,7 @@ async function main() {
     throw new Error(`Missing access_token in token response: ${JSON.stringify(tokens)}`);
   }
 
-  console.log('Verifying MCP initialize ...');
-  await verifyInitialize(mcpUrl, tokens.access_token);
-
-  console.log('\nOAuth succeeded.');
-  console.log(`CLIENT_ID=${clientId}`);
-  console.log(`ACCESS_TOKEN=${tokens.access_token}`);
-  if (tokens.refresh_token) {
-    console.log(`REFRESH_TOKEN=${tokens.refresh_token}`);
-  }
-  if (tokens.expires_in) {
-    console.log(`EXPIRES_IN=${tokens.expires_in}`);
-  }
+  printTokenSummary(clientId, tokens);
 
   if (writeConfig) {
     const configPath = resolveConfigPath(host);
@@ -340,6 +353,16 @@ async function main() {
     console.log(`WROTE_MCP_CONFIG=${configPath}`);
   } else {
     console.log(`MCP_CONFIG_PATH=${resolveConfigPath(host)}`);
+  }
+
+  console.log('Verifying MCP initialize (best effort) ...');
+  try {
+    await verifyInitialize(mcpUrl, tokens.access_token);
+    console.log('MCP_VERIFY=ok');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`MCP_VERIFY=failed ${message}`);
+    console.warn('Tokens above are still valid. Retry verify with curl or start a new host session.');
   }
 }
 

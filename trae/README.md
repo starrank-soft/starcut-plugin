@@ -10,11 +10,17 @@ StarCut on TRAE uses two layers:
 Do not rely on project `.trae/mcp.json` alone for authentication unless your
 TRAE build ignores the global MCP file.
 
-Run the helper from the StarCut plugin source when TRAE shows `401 Unauthorized`
+Run the one-shot installer (replace `PROJECT` with the TRAE project root):
+
+```powershell
+.\trae\install.ps1 -Project "D:\path\to\trae-project"
+```
+
+Or run the OAuth helper when TRAE shows `401 Unauthorized`
 or "failed to start" with no OAuth button:
 
 ```bash
-node scripts/mcp-manual-oauth.mjs --host trae --write-config
+node trae/scripts/mcp-manual-oauth.mjs --host trae --write-config
 ```
 
 For guided installation, open `https://starcut.io/trae.md` in TRAE.

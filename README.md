@@ -69,9 +69,22 @@ or CodeBuddy.
 
 ### TRAE
 
-Copy `trae/.agents` and `trae/.trae` into the project root. If either hidden
-directory already exists, merge its contents. Open TRAE's MCP settings,
-authorize StarCut, and start a new Agent conversation.
+Authenticate MCP globally, then copy skills into the TRAE project that should
+use StarCut:
+
+```bash
+git clone https://github.com/starrank-soft/starcut-plugin.git
+```
+
+Windows PowerShell (replace `PROJECT` with the TRAE project root):
+
+```powershell
+& ".\starcut-plugin\trae\install.ps1" -Project "D:\path\to\trae-project"
+```
+
+Or copy `trae/.agents/skills` into `PROJECT/.agents/skills`, run
+`node trae/scripts/mcp-manual-oauth.mjs --host trae --write-config`, and start a
+new Agent conversation.
 
 For guided installation, open `https://starcut.io/trae.md` in TRAE.
 
