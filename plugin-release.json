@@ -3,7 +3,7 @@
   "source": {
     "repository": "https://github.com/starrank-soft/starcut-monorepo",
     "path": "plugins/starcut",
-    "revision": "735e7cdbbf36414b33cef0bf807ead2a29b4bb5c"
+    "revision": "b992dc2d2543c6804882a867f3f9593050e13cae"
   },
   "version": "0.3.0",
   "hosts": [

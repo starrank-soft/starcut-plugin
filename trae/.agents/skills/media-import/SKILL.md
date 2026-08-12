@@ -43,10 +43,12 @@ directly to object storage and never pass through an MCP tool call.
    `create_project` or `open_project` returns
    `browserHandoff.url` and the host exposes a trusted browser or navigation
    surface, open that exact URL immediately and wait until the editor loads.
-   If the host has no trusted browser surface, never print the handoff token;
-   ask the user to open the stable `editorUrl` and continue only after they
-   confirm the editor loaded. Do not inspect, hash, or upload files while a
-   one-time handoff is still unopened on a browser-capable host.
+   After the editor loads, also give the user the stable `editorUrl` for
+   bookmarking or reopening later. If the host has no trusted browser surface,
+   never print the handoff token; ask the user to open the stable `editorUrl`
+   and continue only after they confirm the editor loaded. Do not inspect, hash,
+   or upload files while a one-time handoff is still unopened on a
+   browser-capable host.
 3. Call `import_media` once with the exact `projectId`.
 4. Use Node.js 18 or newer from the host runtime or `PATH`. When the host offers
    a bundled dependency resolver, prefer its Node runtime without installing a

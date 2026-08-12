@@ -33,9 +33,10 @@ Use the exact `projectId` returned by StarCut for every project-scoped call.
    browser or navigation surface, make opening the exact `browserHandoff.url`
    returned by `mcp__plugin_starcut_starcut__create_project` the next action. Do not import,
    generate, edit, call another project tool, or ask a follow-up until the
-   editor is confirmed loaded. If the host has no trusted browser surface,
-   never print the handoff token; ask the user to open the stable `editorUrl`
-   and continue after the editor is loaded.
+   editor is confirmed loaded. After the editor loads, also give the user the
+   stable `editorUrl` for bookmarking or reopening later. If the host has no
+   trusted browser surface, never print the handoff token; ask the user to open
+   the stable `editorUrl` and continue after the editor is loaded.
 4. Treat `browserHandoff.url` as a short-lived, one-time credential. Never
    print, retain, reuse, or expose it in a Markdown link. Submit its navigation
    once; a queued browser launch is already in progress and must not open the
