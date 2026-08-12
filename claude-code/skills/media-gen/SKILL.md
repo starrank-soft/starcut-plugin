@@ -47,6 +47,7 @@ read:
 
 - `inputModes` for valid combinations of first, last, and reference media;
 - each slot's `role`, `mediaKind`, and `max`;
+- `textInput.maxCharacters` for the hard primary `prompt` or `text` limit;
 - `params` for exact parameter keys, types, choices, defaults, and limits;
 - `features` for model-specific capabilities.
 
@@ -70,8 +71,9 @@ Submit one generation with:
 }
 ```
 
-`name` is optional. One Task produces one stable Artifact. Submit separate
-Tasks only when the user asks for separate outputs.
+`name` is optional. One Task produces one stable Artifact. Do not submit
+redundant variants. Long TTS narration is intentionally split into ordered
+Tasks as described below.
 
 ## Project Media Inputs
 
@@ -199,6 +201,9 @@ Library has no suitable result or the user explicitly requests original music.
 
 Music uses `prompt` for genre, mood, instrumentation, tempo, structure, and
 intended use. Common model parameters include `duration` and `instrumental`.
+Summarize the musical direction instead of pasting a script, document, or
+storyboard into `prompt`. Prefer at most 300 characters even when the queried
+model allows more, and never exceed `textInput.maxCharacters`.
 
 ```json
 {
@@ -262,10 +267,14 @@ parameter contracts even though both produce Audio Artifacts.
 
 ## Text-to-Speech
 
-TTS uses `text`, not `prompt`. ElevenLabs V3 parameters include `voice`,
-`stability`, `timestamps`, `language`, and `applyTextNormalization`. Use
-`language: "auto"` for provider auto-detection; StarCut omits the provider
-language field in that mode.
+TTS uses `text`, not `prompt`. Model parameters are model-specific and must come
+from `query`; `voice` is a catalog value, not free-form text.
+
+Do not send a complete long script in one Task. Preserve the exact authored
+copy, split it at paragraph or sentence boundaries, and generate one ordered
+Artifact per chunk. Prefer chunks of at most 500 characters and never exceed
+the selected model's `textInput.maxCharacters`. If one sentence is too long,
+split at clause punctuation without rewriting or dropping text.
 
 ```json
 {
@@ -276,11 +285,7 @@ language field in that mode.
     "name": "narration.mp3",
     "input": {
       "text": "让每一次创作，都更接近你的想象。",
-      "voice": "Rachel",
-      "stability": 0.5,
-      "timestamps": true,
-      "language": "auto",
-      "applyTextNormalization": "auto"
+      "voice": "Rachel"
     }
   }
 }

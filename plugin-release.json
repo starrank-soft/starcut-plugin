@@ -5,7 +5,7 @@
     "path": "plugins/starcut",
     "revision": "7d897dd9ed3b98a3f659c8b3bf9aec99b30cbf22"
   },
-  "version": "0.3.0",
+  "version": "0.3.1",
   "hosts": [
     "chatgpt",
     "claude-code",

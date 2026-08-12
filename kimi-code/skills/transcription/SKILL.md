@@ -141,10 +141,12 @@ captions were requested. Do not fabricate uncertain timestamps.
 Treat authored copy as wording authority and ASR as timing authority:
 
 1. Write provisional untimed Caption paragraphs.
-2. Generate TTS from exactly that copy.
-3. Place the Audio Artifact in an AudioClip.
-4. Call `mcp__starcut__client_call` with `command: "get_transcript"` on the generated Audio Artifact.
-5. If prepared, call `mcp__starcut__run_task` with the returned Task input.
+2. Split the exact copy into ordered paragraph- or sentence-boundary chunks
+   following the TTS guidance in `media-gen`.
+3. Generate one TTS Artifact per chunk and place the ordered Artifacts as
+   adjacent AudioClips on one AudioTrack.
+4. Call `mcp__starcut__client_call` with `command: "get_transcript"` on each generated Audio Artifact.
+5. If prepared, call `mcp__starcut__run_task` with each returned Task input.
 6. Align recognized words to the authored copy and regroup readable lines.
 7. Update the same CaptionClip and set its source to the AudioTrack.
 

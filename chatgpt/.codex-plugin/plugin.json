@@ -1,6 +1,6 @@
 {
   "name": "starcut",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Connect ChatGPT and Codex to StarCut through its MCP server.",
   "author": {
     "name": "StarRank Soft",
