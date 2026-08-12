@@ -26,6 +26,17 @@ const HOSTS = {
   },
 };
 
+const REQUIRED_AUTHORIZE_PARAMS = [
+  'client_id',
+  'code_challenge',
+  'code_challenge_method',
+  'redirect_uri',
+  'resource',
+  'response_type',
+  'scope',
+  'state',
+];
+
 function readOption(name) {
   const index = process.argv.indexOf(name);
   return index === -1 ? undefined : process.argv[index + 1];
@@ -148,6 +159,22 @@ function buildAuthorizeUrl({
   return `${issuer}/oauth2/authorize?${params.toString()}`;
 }
 
+function assertAuthorizeUrl(url) {
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error(`Invalid authorize URL: ${url}`);
+  }
+
+  for (const key of REQUIRED_AUTHORIZE_PARAMS) {
+    const value = parsed.searchParams.get(key);
+    if (!value) {
+      throw new Error(`Invalid authorize URL: missing query parameter "${key}".`);
+    }
+  }
+}
+
 function waitForAuthorizationCode(port) {
   return new Promise((resolve, reject) => {
     const server = createServer((request, response) => {
@@ -174,12 +201,23 @@ function waitForAuthorizationCode(port) {
 }
 
 function openBrowser(url) {
+  assertAuthorizeUrl(url);
+
   const platform = process.platform;
   if (platform === 'win32') {
-    spawn('cmd', ['/c', 'start', '', url], {
-      detached: true,
-      stdio: 'ignore',
-    }).unref();
+    spawn(
+      'powershell.exe',
+      [
+        '-NoProfile',
+        '-NonInteractive',
+        '-Command',
+        `Start-Process -Uri ${JSON.stringify(url)}`,
+      ],
+      {
+        detached: true,
+        stdio: 'ignore',
+      },
+    ).unref();
     return;
   }
   if (platform === 'darwin') {
@@ -322,12 +360,21 @@ async function main() {
     redirectUri,
     mcpUrl,
   });
+  assertAuthorizeUrl(authorizeUrl);
 
   console.log(`Listening for callback on ${redirectUri} ...`);
+  console.log(`AUTHORIZE_URL=${authorizeUrl}`);
+  console.log(
+    'Expect the StarCut sign-in or consent page in the system browser — not raw JSON VALIDATION_ERROR.',
+  );
+  console.log(
+    'If the browser shows {"code":"VALIDATION_ERROR"...}, stop and rerun this helper. Do not construct /oauth2/authorize URLs manually.',
+  );
+
   const codePromise = waitForAuthorizationCode(callbackPort);
   openBrowser(authorizeUrl);
   console.log('Opened the StarCut authorization page. Log in, pick a workspace, and allow StarCut.');
-  console.log(`If the browser did not open, visit:\n${authorizeUrl}\n`);
+  console.log(`If the browser did not open, paste AUTHORIZE_URL into the system browser.\n`);
 
   const code = await codePromise;
   console.log('Authorization code captured. Exchanging for tokens ...');

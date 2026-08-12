@@ -30,10 +30,10 @@ if (-not (Test-Path -LiteralPath $BasicsSkill)) {
   throw "Skills install verification failed: $BasicsSkill"
 }
 
-Write-Host "Running OAuth helper ..."
+Write-Host "Running OAuth helper (foreground; wait for WROTE_MCP_CONFIG=) ..."
 & node $OAuthScript --host trae --mcp-url $McpUrl --write-config
 if ($LASTEXITCODE -ne 0) {
-  throw "OAuth helper failed with exit code $LASTEXITCODE"
+  throw "OAuth helper failed with exit code $LASTEXITCODE. Do not use TRAE MCP Connect; rerun this script or paste AUTHORIZE_URL from the helper output."
 }
 
 Write-Host "StarCut TRAE install complete. Start a new Agent conversation."
