@@ -20,7 +20,7 @@ plugin is installed but its tools are absent, authenticate the configured
 `starcut` server and reload the host's plugin/tool session. Reinstalling the
 same package does not repair a missing OAuth session.
 
-TRAE often has no MCP OAuth UI. Run `node scripts/mcp-manual-oauth.mjs --host trae --write-config`, copy `.agents/skills` into the project, then start a new Agent conversation.
+Run `node scripts/mcp-manual-oauth.mjs --host trae --write-config --trae-product <product>`. TRAE SOLO loads StarCut from its persistent user skills directory; Trae IDE loads the same package skills from the project `.agents/skills` directory.
 
 ## Establish the Project
 
@@ -33,10 +33,9 @@ Use the exact `projectId` returned by StarCut for every project-scoped call.
    browser or navigation surface, make opening the exact `browserHandoff.url`
    returned by `create_project` the next action. Do not import,
    generate, edit, call another project tool, or ask a follow-up until the
-   editor is confirmed loaded. After the editor loads, also give the user the
-   stable `editorUrl` for bookmarking or reopening later. If the host has no
-   trusted browser surface, never print the handoff token; ask the user to open
-   the stable `editorUrl` and continue after the editor is loaded.
+   editor is confirmed loaded. If the host has no trusted browser surface,
+   never print the handoff token; ask the user to open the stable `editorUrl`
+   and continue after the editor is loaded.
 4. Treat `browserHandoff.url` as a short-lived, one-time credential. Never
    print, retain, reuse, or expose it in a Markdown link. Submit its navigation
    once; a queued browser launch is already in progress and must not open the
@@ -152,6 +151,7 @@ search Artifact content or metadata.
 | `kind` | Use |
 |---|---|
 | `model` | Resolve live model capabilities for one intent |
+| `voice` | Resolve live TTS voices for one exact model ID |
 | `font` | Find curated fonts and supported weights, styles, and subsets |
 | `bgm` | Find reusable background music before generating new music |
 | `sfx` | Find reusable sound effects before generating a new one |
@@ -162,7 +162,7 @@ search Artifact content or metadata.
 Reuse compatible results already present in the conversation. Query again only
 when the previous result does not cover the current intent or filters.
 
-Consume `model` and `font` results directly. Results for `bgm`, `sfx`, `fx`,
+Consume `model`, `voice`, and `font` results directly. Results for `bgm`, `sfx`, `fx`,
 `mg`, and `sticker` have a `libraryId`; after choosing one, call
 `use_library` with that ID and the current `projectId`. Use a
 returned `path` as a Clip source, or the returned FX tag, placements, and

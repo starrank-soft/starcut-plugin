@@ -5,14 +5,13 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$BundleRoot = Split-Path -Parent $PSScriptRoot
-$SourceOpenCode = Join-Path $BundleRoot '.opencode'
-$SourceConfig = Join-Path $BundleRoot 'opencode.json'
+$SourceOpenCode = Join-Path $PSScriptRoot '.opencode'
+$SourceConfig = Join-Path $PSScriptRoot 'opencode.json'
 $ProjectOpenCode = Join-Path $Project '.opencode'
 $ProjectConfig = Join-Path $Project 'opencode.json'
 
 if (-not (Test-Path -LiteralPath $Project)) {
-  throw "PROJECT does not exist: $Project"
+  throw "Project does not exist: $Project"
 }
 
 if (-not (Test-Path -LiteralPath $SourceOpenCode)) {
@@ -26,7 +25,7 @@ if ($LASTEXITCODE -ge 8) {
   throw "robocopy failed with exit code $LASTEXITCODE"
 }
 
-$BasicsSkill = Join-Path $Project '.opencode\skills\basics\SKILL.md'
+$BasicsSkill = Join-Path $ProjectOpenCode 'skills\basics\SKILL.md'
 if (-not (Test-Path -LiteralPath $BasicsSkill)) {
   throw "Skills install verification failed: $BasicsSkill"
 }

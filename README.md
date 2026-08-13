@@ -67,26 +67,26 @@ codebuddy plugin install starcut@starcut
 For guided installation, open `https://starcut.io/workbuddy.md` in WorkBuddy
 or CodeBuddy.
 
+On Windows, `workbuddy/install.ps1` performs the marketplace installation and
+the manual OAuth flow in one foreground command.
+
 ### TRAE
 
-Authenticate MCP globally, then copy skills into the TRAE project that should
-use StarCut:
+The `trae/` package contains `.trae-plugin/plugin.json` and one canonical
+`skills/` tree. TRAE SOLO users install those skills into the persistent user
+directory (`~/.trae-cn/skills` for SOLO CN or `~/.trae/skills` for SOLO).
+Trae IDE users copy the same `trae/skills` contents into the project's
+`.agents/skills` directory. Never install into SOLO's internal
+`work-mode-projects` directories.
 
-```bash
-git clone https://github.com/starrank-soft/starcut-plugin.git
-```
-
-Windows PowerShell (replace `PROJECT` with the TRAE project root):
-
-```powershell
-& ".\starcut-plugin\trae\install.ps1" -Project "D:\path\to\trae-project"
-```
-
-Or copy `trae/.agents/skills` into `PROJECT/.agents/skills`, run
-`node trae/scripts/mcp-manual-oauth.mjs --host trae --write-config`, and start a
-new Agent conversation.
+Run `trae/scripts/mcp-manual-oauth.mjs` with the exact `--trae-product` value to
+configure and verify the global MCP server without printing credentials.
 
 For guided installation, open `https://starcut.io/trae.md` in TRAE.
+
+On Windows, run `trae/install.ps1 -TraeProduct <product>`. TRAE IDE products
+also require `-Project <path>`; SOLO products install into their persistent
+user skills directory.
 
 ### OpenCode
 
@@ -96,6 +96,9 @@ Copy `opencode/.opencode` and `opencode/opencode.json` into the project root. If
 ```bash
 opencode mcp auth starcut
 ```
+
+On Windows, `opencode/install.ps1 -Project <path>` copies the skills, merges
+only `mcp.starcut` into the project config, and starts authentication.
 
 ## Repository Layout
 
@@ -112,7 +115,7 @@ grok-build/                          Grok Build package
 cursor/                              Cursor package
 kimi-code/                           Kimi Code skills
 workbuddy/                           WorkBuddy/CodeBuddy package
-trae/                                TRAE project bundle
+trae/                                TRAE plugin and skills package
 opencode/                            OpenCode project bundle
 ```
 

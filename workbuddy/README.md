@@ -7,16 +7,17 @@ instead of a native OAuth button.
 Write the MCP server to `~/.workbuddy/mcp.json` — exactly `mcp.json`, with no
 leading dot.
 
-Run the one-shot installer from this package:
-
-```powershell
-.\workbuddy\install.ps1
-```
-
-Or run the OAuth helper directly:
+Run the helper from the StarCut plugin source:
 
 ```bash
-node workbuddy/scripts/mcp-manual-oauth.mjs --host workbuddy --write-config
+node scripts/mcp-manual-oauth.mjs --host workbuddy --write-config
+```
+
+On Windows, the bundled installer adds the marketplace, installs the plugin,
+and runs the same OAuth helper:
+
+```powershell
+.\install.ps1
 ```
 
 For guided installation, open `https://starcut.io/workbuddy.md` in WorkBuddy.

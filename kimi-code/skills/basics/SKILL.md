@@ -33,10 +33,9 @@ Use the exact `projectId` returned by StarCut for every project-scoped call.
    browser or navigation surface, make opening the exact `browserHandoff.url`
    returned by `mcp__starcut__create_project` the next action. Do not import,
    generate, edit, call another project tool, or ask a follow-up until the
-   editor is confirmed loaded. After the editor loads, also give the user the
-   stable `editorUrl` for bookmarking or reopening later. If the host has no
-   trusted browser surface, never print the handoff token; ask the user to open
-   the stable `editorUrl` and continue after the editor is loaded.
+   editor is confirmed loaded. If the host has no trusted browser surface,
+   never print the handoff token; ask the user to open the stable `editorUrl`
+   and continue after the editor is loaded.
 4. Treat `browserHandoff.url` as a short-lived, one-time credential. Never
    print, retain, reuse, or expose it in a Markdown link. Submit its navigation
    once; a queued browser launch is already in progress and must not open the
@@ -152,6 +151,7 @@ search Artifact content or metadata.
 | `kind` | Use |
 |---|---|
 | `model` | Resolve live model capabilities for one intent |
+| `voice` | Resolve live TTS voices for one exact model ID |
 | `font` | Find curated fonts and supported weights, styles, and subsets |
 | `bgm` | Find reusable background music before generating new music |
 | `sfx` | Find reusable sound effects before generating a new one |
@@ -162,7 +162,7 @@ search Artifact content or metadata.
 Reuse compatible results already present in the conversation. Query again only
 when the previous result does not cover the current intent or filters.
 
-Consume `model` and `font` results directly. Results for `bgm`, `sfx`, `fx`,
+Consume `model`, `voice`, and `font` results directly. Results for `bgm`, `sfx`, `fx`,
 `mg`, and `sticker` have a `libraryId`; after choosing one, call
 `mcp__starcut__use_library` with that ID and the current `projectId`. Use a
 returned `path` as a Clip source, or the returned FX tag, placements, and

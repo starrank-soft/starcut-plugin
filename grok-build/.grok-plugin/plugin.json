@@ -16,7 +16,5 @@
     "timeline",
     "grok-build",
     "mcp"
-  ],
-  "skills": "./skills/",
-  "mcpServers": "./.mcp.json"
+  ]
 }
