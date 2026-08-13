@@ -1,8 +1,7 @@
 # StarCut for WorkBuddy / CodeBuddy
 
-Install the StarCut plugin from the marketplace for local skills, then authenticate
-MCP manually. WorkBuddy usually requires a static `Authorization: Bearer` header
-instead of a native OAuth button.
+Install the StarCut plugin from the marketplace for local skills, then use the
+bundled helper when MCP authentication is required.
 
 Write the MCP server to `~/.workbuddy/mcp.json` — exactly `mcp.json`, with no
 leading dot.
@@ -10,7 +9,10 @@ leading dot.
 Run the helper from the StarCut plugin source:
 
 ```bash
-node scripts/mcp-manual-oauth.mjs --host workbuddy --write-config
+node scripts/mcp-manual-oauth.mjs \
+  --host workbuddy \
+  --mcp-url "https://api.starcut.io/mcp" \
+  --write-config
 ```
 
 On Windows, the bundled installer adds the marketplace, installs the plugin,

@@ -29,9 +29,22 @@ For guided installation, open `https://starcut.io/claude.md` in Claude Code.
 ### Grok Build
 
 ```bash
-grok plugin marketplace add starrank-soft/starcut-plugin
-grok plugin install starcut@starcut --trust
+grok plugin install starrank-soft/starcut-plugin#grok-build --trust
+grok plugin enable starcut
 ```
+
+When authentication is required, resolve the installed package path with
+`grok inspect --json`, then run its bundled helper:
+
+```bash
+node "<GROK_PLUGIN_PATH>/scripts/mcp-manual-oauth.mjs" \
+  --host grok \
+  --mcp-url "https://api.starcut.io/mcp" \
+  --write-config
+```
+
+The guided installer at `https://starcut.io/grok.md` performs this resolution
+and verifies the result with `grok mcp doctor starcut --json`.
 
 The Grok website is a different host surface. Add
 `https://api.starcut.io/mcp` as a custom connector at

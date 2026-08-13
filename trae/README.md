@@ -21,7 +21,11 @@ Run the helper from the StarCut plugin source when TRAE shows `401 Unauthorized`
 or "failed to start" with no OAuth button:
 
 ```bash
-node scripts/mcp-manual-oauth.mjs --host trae --write-config --trae-product "<solo-cn|solo|ide-cn|ide>"
+node scripts/mcp-manual-oauth.mjs \
+  --host trae \
+  --mcp-url "https://api.starcut.io/mcp" \
+  --write-config \
+  --trae-product "<solo-cn|solo|ide-cn|ide>"
 ```
 
 On Windows, the bundled installer selects the correct persistent skills

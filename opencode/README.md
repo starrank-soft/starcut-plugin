@@ -15,3 +15,5 @@ On Windows, the bundled installer copies the skills, merges only the
 ```powershell
 .\install.ps1 -Project C:\path\to\project
 ```
+
+For guided installation, open `https://starcut.io/opencode.md` in OpenCode.

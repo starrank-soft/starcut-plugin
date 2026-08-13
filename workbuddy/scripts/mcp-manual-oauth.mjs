@@ -26,7 +26,7 @@ import {
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 
-const HOSTS = new Set(['workbuddy', 'trae']);
+const HOSTS = new Set(['workbuddy', 'trae', 'grok']);
 const TRAE_PRODUCTS = new Set(['solo-cn', 'solo', 'ide-cn', 'ide']);
 
 function readOption(name) {
@@ -106,6 +106,10 @@ export function resolveConfigPath(
 ) {
   if (host === 'workbuddy') {
     return join(home, '.workbuddy', 'mcp.json');
+  }
+
+  if (host === 'grok') {
+    return join(home, '.grok', 'config.toml');
   }
 
   if (host !== 'trae') {
@@ -459,6 +463,32 @@ function openBrowser(url) {
   child.unref();
 }
 
+function runGrokCommand(args) {
+  return new Promise((resolveCommand, rejectCommand) => {
+    const child = spawn('grok', args, {
+      stdio: ['ignore', 'ignore', 'pipe'],
+    });
+    let stderr = '';
+    child.stderr.setEncoding('utf8');
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk;
+    });
+    child.once('error', rejectCommand);
+    child.once('close', (code) => {
+      if (code === 0) {
+        resolveCommand();
+        return;
+      }
+      const detail = stderr.trim();
+      rejectCommand(
+        new Error(
+          `grok mcp add failed with exit code ${code}${detail ? `: ${detail}` : '.'}`,
+        ),
+      );
+    });
+  });
+}
+
 async function exchangeCode({
   issuer,
   code,
@@ -506,6 +536,70 @@ async function verifyInitialize(mcpUrl, accessToken) {
   }
 }
 
+async function writePrivateFile(configPath, contents) {
+  await mkdir(dirname(configPath), { recursive: true });
+  const temporaryPath = `${configPath}.${process.pid}.${base64Url(randomBytes(8))}.tmp`;
+  try {
+    await writeFile(temporaryPath, contents, {
+      encoding: 'utf8',
+      mode: 0o600,
+    });
+    await rename(temporaryPath, configPath);
+  } catch (error) {
+    await rm(temporaryPath, { force: true });
+    throw error;
+  }
+  if (process.platform !== 'win32') {
+    await chmod(configPath, 0o600);
+  }
+}
+
+function tomlBasicStringContents(value) {
+  return String(value)
+    .replaceAll('\\', '\\\\')
+    .replaceAll('"', '\\"')
+    .replaceAll('\b', '\\b')
+    .replaceAll('\t', '\\t')
+    .replaceAll('\n', '\\n')
+    .replaceAll('\f', '\\f')
+    .replaceAll('\r', '\\r');
+}
+
+export async function configureGrokMcp(
+  configPath,
+  mcpUrl,
+  accessToken,
+  { run = runGrokCommand } = {},
+) {
+  const credentialPlaceholder = `starcut-${base64Url(randomBytes(32))}`;
+  await run([
+    'mcp',
+    'add',
+    '--scope',
+    'user',
+    '--transport',
+    'http',
+    'starcut',
+    mcpUrl,
+    '--header',
+    `Authorization: Bearer ${credentialPlaceholder}`,
+  ]);
+
+  const configured = await readFile(configPath, 'utf8');
+  const occurrences = configured.split(credentialPlaceholder).length - 1;
+  if (occurrences !== 1) {
+    throw new Error(
+      `Grok MCP configuration did not contain exactly one credential placeholder (found ${occurrences}).`,
+    );
+  }
+  const next = configured.replace(
+    credentialPlaceholder,
+    tomlBasicStringContents(accessToken),
+  );
+  await writePrivateFile(configPath, next);
+  return configPath;
+}
+
 export async function mergeMcpConfig(configPath, mcpUrl, accessToken) {
   let existing = { mcpServers: {} };
   try {
@@ -530,45 +624,37 @@ export async function mergeMcpConfig(configPath, mcpUrl, accessToken) {
     },
   };
 
-  await mkdir(dirname(configPath), { recursive: true });
-  const temporaryPath = `${configPath}.${process.pid}.${base64Url(randomBytes(8))}.tmp`;
-  try {
-    await writeFile(temporaryPath, `${JSON.stringify(next, null, 2)}\n`, {
-      encoding: 'utf8',
-      mode: 0o600,
-    });
-    await rename(temporaryPath, configPath);
-  } catch (error) {
-    await rm(temporaryPath, { force: true });
-    throw error;
-  }
-  if (process.platform !== 'win32') {
-    await chmod(configPath, 0o600);
-  }
+  await writePrivateFile(configPath, `${JSON.stringify(next, null, 2)}\n`);
   return configPath;
 }
 
 async function main() {
   const host = readOption('--host');
-  const mcpUrl =
-    readOption('--mcp-url') ??
-    (process.env.NODE_ENV === 'production'
-      ? 'https://api.starcut.io/mcp'
-      : 'http://localhost:2330/mcp');
+  const mcpUrl = readOption('--mcp-url');
   const configPathOption = readOption('--config-path');
   const traeProduct = readOption('--trae-product');
 
   if (!host || !HOSTS.has(host)) {
     throw new Error(
-      'Usage: node mcp-manual-oauth.mjs --host workbuddy|trae --write-config ' +
-        '[--mcp-url URL] [--trae-product solo-cn|solo|ide-cn|ide] [--config-path PATH]',
+      'Usage: node mcp-manual-oauth.mjs --host workbuddy|trae|grok --mcp-url URL ' +
+        '--write-config [--trae-product solo-cn|solo|ide-cn|ide] [--config-path PATH]',
     );
   }
   if (!hasFlag('--write-config')) {
     throw new Error('--write-config is required because OAuth tokens are never printed.');
   }
+  if (!mcpUrl) {
+    throw new Error('--mcp-url is required; use the endpoint declared by the installed package.');
+  }
+  const mcpProtocol = new URL(mcpUrl).protocol;
+  if (mcpProtocol !== 'http:' && mcpProtocol !== 'https:') {
+    throw new Error('--mcp-url must use http or https.');
+  }
   if (configPathOption && !isAbsolute(configPathOption)) {
     throw new Error('--config-path must be an absolute path.');
+  }
+  if (host === 'grok' && configPathOption) {
+    throw new Error('--config-path is not supported with Grok; Grok writes its user config.');
   }
   if (host !== 'trae' && traeProduct) {
     throw new Error('--trae-product is only valid with --host trae.');
@@ -623,7 +709,11 @@ async function main() {
       }
 
       await verifyInitialize(mcpUrl, tokens.access_token);
-      await mergeMcpConfig(configPath, mcpUrl, tokens.access_token);
+      if (host === 'grok') {
+        await configureGrokMcp(configPath, mcpUrl, tokens.access_token);
+      } else {
+        await mergeMcpConfig(configPath, mcpUrl, tokens.access_token);
+      }
       await callbackResult.succeed();
 
       console.log('OAuth succeeded and MCP initialize was verified.');
