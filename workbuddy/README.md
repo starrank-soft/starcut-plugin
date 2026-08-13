@@ -13,4 +13,11 @@ Run the helper from the StarCut plugin source:
 node scripts/mcp-manual-oauth.mjs --host workbuddy --write-config
 ```
 
+On Windows, the bundled installer adds the marketplace, installs the plugin,
+and runs the same OAuth helper:
+
+```powershell
+.\install.ps1
+```
+
 For guided installation, open `https://starcut.io/workbuddy.md` in WorkBuddy.

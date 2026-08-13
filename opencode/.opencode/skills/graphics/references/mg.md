@@ -108,7 +108,7 @@ export default class LaunchTitle extends HTMLElement {
 - Make the entire file valid JavaScript module source.
 - Export exactly one static `metadata` object and one default class extending
   `HTMLElement`.
-- Do not call `customElements.define`; StarCut imports and defines the class.
+- Do not call `customElements.define`.
 - Create one shadow root containing exactly one root `<svg>` element.
 - Implement `connectedCallback()`, synchronous `render(time)`, and
   `disconnectedCallback()`.
@@ -119,8 +119,7 @@ export default class LaunchTitle extends HTMLElement {
 
 ## Metadata
 
-Keep `metadata` a direct JSON-compatible object literal so StarCut can inspect
-and persist it without executing generated code.
+Keep `metadata` a direct JSON-compatible object literal.
 
 ```ts
 type MotionGraphicMetadata = {
@@ -165,8 +164,8 @@ type MgVariable = MgVariableBase & (
 ```
 
 - Use integer pixels from 64 through 4096 for `width` and `height`.
-- Use 0.1 through 600 seconds for `duration`. StarCut converts it to integer
-  microseconds when storing Artifact Blob metadata and Timeline source ranges.
+- Use 0.1 through 600 seconds for `duration`. MG metadata uses seconds; Timeline
+  source ranges use integer microseconds.
 - Declare every font used by SVG text in `fonts`. Each `family` is a stable
   StarCut catalog ID; use its corresponding CSS family name in the SVG.
 - Use at most 16 unique family, weight, and style combinations. Weight defaults
@@ -190,36 +189,25 @@ type MgVariable = MgVariableBase & (
   independently maintained default-props object.
 - Make the SVG viewBox derive from `metadata.width` and `metadata.height`.
 - Make all internal timing fit within `metadata.duration`.
-
-After creation or source editing, StarCut validates this descriptor and stores
-`version`, `width`, `height`, duration in microseconds, `fonts`, and `variables`
-on the immutable Artifact Blob. Media panels and Timeline placement read that
-stored projection without importing or mounting the module.
+- Keep `metadata` literal: do not use references, calls, spreads, methods,
+  accessors, computed keys, template expressions, duplicate keys, non-finite
+  numbers, or unknown fields.
 
 ## Font Catalog
 
-StarCut owns font download, immutable caching, preview loading, and SVG frame
-embedding. Declare catalog fonts in metadata and never fetch or embed font files
-inside the authored module.
+Declare catalog fonts in metadata and never fetch or embed font files inside
+the authored module.
 
 Reuse a compatible `kind: "font"` catalog result already present in the
 conversation. Otherwise query the font catalog first. Write the returned stable
 `id` to metadata and its returned `family` to SVG `font-family`; never invent
 either value.
 
-Use only the weights and styles needed by the scene. StarCut selects only the
-font chunks needed by the current SVG text, then embeds those exact bytes when
-serializing frames for thumbnails, capture, and export.
-
-The server must parse the module as JavaScript and statically evaluate only the
-exported metadata object literal. It must never execute the generated module.
-Reject references, calls, spreads, methods, accessors, computed keys, template
-expressions, duplicate keys, non-finite numbers, and unknown metadata fields.
+Use only the weights and styles needed by the scene.
 
 ## Runtime Inputs
 
-Before connecting an instance, StarCut assigns runtime capabilities and resolved
-Clip props:
+Each component receives these runtime inputs:
 
 ```ts
 type MotionGraphicElement = HTMLElement & {
@@ -229,19 +217,18 @@ type MotionGraphicElement = HTMLElement & {
 };
 ```
 
-The custom-element constructor runs before those assignments. Keep it empty or
-use it only for ordinary field initialization. Do not read `runtime`, `props`,
-the shadow root, or host DOM until the setters and `connectedCallback()` run.
+Keep the custom-element constructor empty or use it only for ordinary field
+initialization. Do not read `runtime`, `props`, the shadow root, or host DOM
+until the setters and `connectedCallback()` run.
 The `props` setter may run before connection, so it must tolerate the SVG not
 being mounted yet.
 
-The resolved props are variable defaults merged with the MotionGraphicClip's
-instance overrides. Reject unknown override IDs and type mismatches before
-assigning them. Assigning `element.props` again must update content without
-changing placement.
+Props combine variable defaults with the MotionGraphicClip's instance
+overrides. Assigning `element.props` again must update content without changing
+placement.
 
-Timeline state stores overrides as direct `MotionGraphicProp` members. The
-source `variables` descriptor remains the only type schema:
+Timeline overrides use `MotionGraphicProp` members. The source `variables`
+descriptor remains the type schema:
 
 ```xml
 <MotionGraphicClip source="assets/lower-third.mg"
@@ -292,8 +279,7 @@ are parsed and validated from the source-owned descriptor before assignment.
 - Use native SVG paths, text, gradients, masks, clip paths, patterns, and
   restrained filters.
 - Keep the canvas transparent unless the request asks for a background.
-- Use only fonts declared in `metadata.fonts`. StarCut provides the matching
-  `@font-face` resources to live preview and serialized SVG frames.
+- Use only fonts declared in `metadata.fonts`.
 - Keep resources self-contained. Embedded raster images may use `data:image/*`.
 - Do not import packages, load external URLs, call network or storage APIs, or
   access the host document.
@@ -301,28 +287,11 @@ are parsed and validated from the source-owned descriptor before assignment.
   or 3D inside the Motion Graphic component.
 - Keep per-frame work bounded and reuse allocations when practical.
 
-## Product Rendering
-
-- Interactive preview mounts the component in StarCut's shared HTML band.
-- Thumbnail, capture, transition-cache, and export consumers mount the same
-  component, call `render(time)`, then rasterize its SVG.
-- Keep one implementation for preview and frame rendering.
-
-StarCut reads source bytes by immutable Blob hash, validates metadata, creates a
-`text/javascript` Blob URL, and dynamically imports that URL. One module promise
-is cached per source hash; Clips share the imported constructor but own separate
-element instances. StarCut revokes the Blob URL after import, defines the
-constructor once, assigns `runtime` and resolved `props`, and only then connects
-the element. A changed source hash imports a new module revision.
-
 ## Trust Boundary
 
-An `.mg` module is trusted project code. Static metadata inspection protects
-server processes because they never execute the module, but it does not sandbox
-browser execution. A shadow root isolates DOM and styles, not JavaScript
-authority. Do not accept arbitrary public `.mg` uploads into the editor runtime
-without a separate security boundary. The no-network and no-host-document rules
-are part of the authored contract, not a browser security guarantee.
+An `.mg` module is executable project code. Do not copy untrusted external MG
+source into a project. Keep authored modules self-contained and follow the
+no-network and no-host-document rules above.
 
 ## Final Check
 

@@ -5,63 +5,62 @@ description: Use when getting timestamped transcripts from StarCut audio or vide
 
 # Transcription and Captions
 
+All unqualified tool names below refer to StarCut tools. If another provider
+exposes the same basename, choose the StarCut tool.
+
 Use one transcript workflow for both readable transcripts and Timeline
 captions:
 
 ```text
 Audio or Video Artifact
-→ starcut_client_call with command: get_transcript
-→ starcut_run_task with task: transcribe when prepared
+→ client_call with command: get_transcript
+→ run_task with task: transcribe when prepared
 → timestamped transcript
 → optional CaptionClip
 ```
 
-StarCut stores the transcript in the canonical Audio Artifact metadata. It does
-not create a transcript Artifact or file. Create a `docs/*.md` Markdown file
-only when the user separately asks to preserve readable transcript copy.
+`get_transcript` returns transcript data directly; it does not create a
+transcript file. Create a `docs/*.md` file only when the user asks to preserve
+readable transcript copy.
 
 ## Operations
 
 | Need | Call |
 |---|---|
-| Get a cached transcript or prepare canonical audio | `starcut_client_call` with `command: "get_transcript"` |
-| Materialize audio or select a source range | `starcut_client_call` with `command: "extract_audio"` |
-| Run ASR on an exact ready Audio Artifact | `starcut_run_task` with `task: "transcribe"` |
-| Generate speech | `starcut_query` with `kind: "model"` and intent `audio.tts`, then `starcut_run_task(generate)` |
+| Get or prepare a transcript | `client_call` with `command: "get_transcript"` |
+| Materialize audio or select a source range | `client_call` with `command: "extract_audio"` |
+| Run ASR on an exact ready Audio Artifact | `run_task` with `task: "transcribe"` |
+| Generate speech | `query` with `kind: "model"` and intent `audio.tts`, then `run_task(generate)` |
 | Persist captions | StarCut Node tools on the target Timeline |
 
-Use `starcut_client_call` with `command: "get_transcript"` by default for both
-Audio and Video Artifacts. For Video,
-the connected editor prepares, uploads, and reuses its canonical full-length
-Audio Artifact before ASR. Repeated calls reuse the linked audio and completed
-transcript.
+Use `client_call` with `command: "get_transcript"` by default for both
+Audio and Video Artifacts. Repeated calls may reuse a completed transcript.
 
-The `get_transcript` command only resolves cached transcript metadata and
-prepares canonical audio. If it returns `succeeded`, consume the transcript. If
-it returns `prepared`, call `starcut_run_task` once with the returned
+If `get_transcript` returns `succeeded`, consume the transcript. If it returns
+`prepared`, call `run_task` once with the returned
 `runTask` value. Merge any chosen `modelId`, `language`, `diarize`, or
 `keyterms` into `runTask.params`. If that Task is still running, call
-`starcut_poll` with its returned `toolCallId`; do not call
+`poll` with its returned `toolCallId`; do not call
 `get_transcript` again to poll or start duplicate work.
 
 ## Get a Transcript
 
-Locate the source with `starcut_glob`, inspect it with
-`starcut_head`, and pass its exact path:
+Locate the source with `glob`, inspect it with
+`head`, and pass its exact path:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "command": "get_transcript",
   "target": "assets/dialogue.mp4"
 }
 ```
 
 When the result is `prepared`, pass its `runTask.task` and `runTask.params` to
-`starcut_run_task`. Optional ASR fields are `modelId`, `language`,
+`run_task`. Optional ASR fields are `modelId`, `language`,
 `diarize`, and `keyterms`; add them to those Task params, not to
-`starcut_client_call`. Omit `modelId` to use the configured ASR default.
-Call `starcut_query` with `kind: "model"` and intent `audio.asr` only
+`client_call`. Omit `modelId` to use the configured ASR default.
+Call `query` with `kind: "model"` and intent `audio.asr` only
 when model selection matters.
 
 Consume:
@@ -78,13 +77,13 @@ Words and segments use microseconds.
 
 ## Explicit Audio Extraction
 
-Use `starcut_client_call` with `command: "extract_audio"` only when the user
+Use `client_call` with `command: "extract_audio"` only when the user
 wants a reusable Audio Artifact or recognition must cover an explicit source
 range:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "command": "extract_audio",
   "target": "assets/interview.mp4",
   "params": {
@@ -98,7 +97,7 @@ range:
 ```
 
 The range is half-open. After extracting a selected range, run
-`starcut_run_task` with `task: "transcribe"` and the returned Audio path.
+`run_task` with `task: "transcribe"` and the returned Audio path.
 Do not extract full video audio as a routine precondition for the
 `get_transcript` command.
 
@@ -141,10 +140,12 @@ captions were requested. Do not fabricate uncertain timestamps.
 Treat authored copy as wording authority and ASR as timing authority:
 
 1. Write provisional untimed Caption paragraphs.
-2. Generate TTS from exactly that copy.
-3. Place the Audio Artifact in an AudioClip.
-4. Call `starcut_client_call` with `command: "get_transcript"` on the generated Audio Artifact.
-5. If prepared, call `starcut_run_task` with the returned Task input.
+2. Split the exact copy into ordered paragraph- or sentence-boundary chunks
+   following the TTS guidance in `media-gen`.
+3. Generate one TTS Artifact per chunk and place the ordered Artifacts as
+   adjacent AudioClips on one AudioTrack.
+4. Call `client_call` with `command: "get_transcript"` on each generated Audio Artifact.
+5. If prepared, call `run_task` with each returned Task input.
 6. Align recognized words to the authored copy and regroup readable lines.
 7. Update the same CaptionClip and set its source to the AudioTrack.
 

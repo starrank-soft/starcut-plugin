@@ -5,6 +5,9 @@ description: Use when creating or editing StarCut Timelines, including Compositi
 
 # Timeline Editing
 
+All unqualified tool names below refer to StarCut tools. If another provider
+exposes the same basename, choose the StarCut tool.
+
 Timeline documents live at `compositions/*.vml` with a `<Composition>` root.
 Use “Timeline” for the product and workflow concept; use “Composition” for its
 VML Node and renderer type.
@@ -133,7 +136,7 @@ Nodes.
 
 Creating a Timeline in the editor starts with one `<VideoTrack name="Video">`.
 A complete `write` uses the supplied VML exactly, so include that
-Track explicitly when creating a Timeline through MCP.
+Track explicitly when creating a Timeline.
 
 ## Tracks
 
@@ -200,7 +203,7 @@ whether they should cover captions.
 
 Before creating a generic overlay, query `sticker` or `mg`. When a result fits,
 call `use_library` with its `libraryId` and the current
-`projectId`, then use the returned `path` as the Clip source. Create a custom
+`contextId`, then use the returned `path` as the Clip source. Create a custom
 graphic only when no resource fits or the user requests an original design.
 
 ## Common Clip Timeline
@@ -356,11 +359,10 @@ Crop Attributes as VideoClip. It also supports visual `fadeInDuration` and
 ## Effects
 
 An Effect uses a registered public tag and supports the placements declared by
-that registration. Never write a generic `<Effect>` tag, an internal `source`,
-or `scope`, `target`, `targetId`, `from`, or `to` Attributes.
+that registration. Never invent an Effect tag, placement, or Attribute.
 
 Query `fx`, choose a result, then call `use_library` with its
-`libraryId` and the current `projectId`. The returned `effect` contains the
+`libraryId` and the current `contextId`. The returned `effect` contains the
 public tag, allowed placements, and current parameters. Use that definition
 instead of memorizing a static Effect catalog.
 
@@ -531,7 +533,7 @@ animation; MotionGraphicClip has no dedicated fade Attributes.
   Effect tag.
   Use `beforeId` only for an intentional ordered insertion.
 - Use `move_node` to reorder a Node or move it to a compatible
-  parent. Never write internal owner or order fields.
+  parent. Do not encode parentage or ordering manually.
 - Use `delete_node` only after removing inbound references and
   while preserving at least one VideoTrack.
 - Keep TextClip copy in direct Text Data. Edit CaptionClip Caption Text Data as

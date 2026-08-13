@@ -3,9 +3,9 @@
   "source": {
     "repository": "https://github.com/starrank-soft/starcut-monorepo",
     "path": "plugins/starcut",
-    "revision": "9394877a419164de1ec5dc357e40bd35b1f2d35e"
+    "revision": "f7d7ab993b408ca5764fcdb0b5443ab8ac17a3a1"
   },
-  "version": "0.3.0",
+  "version": "0.3.2",
   "hosts": [
     "chatgpt",
     "claude-code",

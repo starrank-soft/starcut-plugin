@@ -5,47 +5,39 @@ description: Use for StarCut project access and browser handoff, understanding p
 
 # StarCut Basics
 
+All unqualified tool names below refer to StarCut tools. If another provider
+exposes the same basename, choose the StarCut tool.
+
 Keep the StarCut project as the editable source of truth. Make changes through
 StarCut tools instead of replacing the project with a flattened local video.
 
-Use the exact StarCut MCP tool names shown throughout this host package. Resolve
-them within the `starcut` MCP server; do not rename them or substitute a tool
-from another MCP server. Host packages intentionally use different namespace
-forms around the same StarCut tool basename.
-
-## Host Connection
-
-MCP authentication and tool refresh are owned by the host. If the StarCut
-plugin is installed but its tools are absent, authenticate the configured
-`starcut` server and reload the host's plugin/tool session. Reinstalling the
-same package does not repair a missing OAuth session.
-
-Open `/mcps`, select the StarCut server, and press `i` when authorization is required. Reload extensions or start a new Grok Build session after authentication.
-
 ## Establish the Project
 
-Use the exact `projectId` returned by StarCut for every project-scoped call.
+Start with `create_project` or `open_project`, then use its returned `contextId`
+for this conversation's project work. Use `projectId` only to select an existing
+project with `open_project`.
 
-1. Call `starcut__create_project` when the user wants a new project.
-2. Call `starcut__list_projects` when an existing project is intended but
-   its ID is unknown.
+1. Call `create_project` when the user wants a new project.
+2. Call `list_projects` when an existing project is intended but
+   its ID is unknown, then pass that `projectId` to
+   `open_project` to create a fresh `contextId`.
 3. Project creation does not open the editor. When the host exposes a trusted
    browser or navigation surface, make opening the exact `browserHandoff.url`
-   returned by `starcut__create_project` the next action. Do not import,
+   returned by `create_project` the next action. Do not import,
    generate, edit, call another project tool, or ask a follow-up until the
    editor is confirmed loaded. If the host has no trusted browser surface,
    never print the handoff token; ask the user to open the stable `editorUrl`
    and continue after the editor is loaded.
 4. Treat `browserHandoff.url` as a short-lived, one-time credential. Never
-   print, retain, reuse, or expose it in a Markdown link. Submit its navigation
-   once; a queued browser launch is already in progress and must not open the
-   same handoff again.
-5. Call `starcut__open_project` to reopen an existing project or replace
+   print, retain, reuse, or expose it in a Markdown link. Navigate it exactly
+   once.
+5. Call `open_project` to reopen an existing project or replace
    an expired handoff. Only call it when ready to open the returned URL
    immediately.
-6. A successful media import does not preserve an unopened handoff. Confirm
-   the editor first, then continue project work.
-7. Use `editorUrl` for user-facing links.
+6. Use `editorUrl` for user-facing links.
+7. Keep the returned `contextId` for this conversation only. Do not reuse a
+   context from another Agent conversation, even when both target the same
+   project.
 
 Authorization already selects the StarCut workspace. Do not ask for or pass an
 organization ID.
@@ -91,7 +83,7 @@ determines which child tags and Attributes it accepts. Load `timeline-editing`
 for the complete Composition, Track, and Clip catalog.
 
 Binary Artifacts can be referenced and inspected but not changed with
-`starcut__write` or `starcut__edit`. Markdown, SVG, and MG are editable
+`write` or `edit`. Markdown, SVG, and MG are editable
 source files. SVG and MG are text Artifacts. Editing any source file keeps the
 same project path, so existing references remain valid.
 
@@ -108,15 +100,15 @@ effects, and render settings.
 
 | Need | Tool |
 |---|---|
-| Find a project | `starcut__list_projects` |
-| List project files or Artifacts | `starcut__glob` |
-| Search editable file content | `starcut__grep` |
-| Read one VML, Markdown, SVG, or MG file | `starcut__read` |
-| Read one VML Node | `starcut__read` with `path` and `nodeId` |
-| Inspect file or Artifact metadata | `starcut__head` |
-| Inspect models, fonts, or reusable Library/FX resources | `starcut__query` |
+| Find a project | `list_projects` |
+| List project files or Artifacts | `glob` |
+| Search editable file content | `grep` |
+| Read one VML, Markdown, SVG, or MG file | `read` |
+| Read one VML Node | `read` with `path` and `nodeId` |
+| Inspect file or Artifact metadata | `head` |
+| Inspect models, fonts, or reusable Library/FX resources | `query` |
 
-Useful `starcut__glob` patterns include:
+Useful `glob` patterns include:
 
 ```text
 project.json
@@ -129,28 +121,29 @@ assets/*.{mp3,wav,m4a,ogg}
 assets/*.mg
 ```
 
-Use `starcut__read` for known editable text. A VML Node can be read with
+Use `read` for known editable text. A VML Node can be read with
 its file `path` and exact `nodeId`; Markdown, SVG, and MG are always read as
-complete source files. Do not ask `starcut__read` to return binary
+complete source files. Do not ask `read` to return binary
 Artifact bytes.
 Reading VML does not follow a `source`; read or inspect the exact referenced
 path separately when needed.
 
-Use `starcut__head` for authoritative Artifact kind, readiness, dimensions,
+Use `head` for authoritative Artifact kind, readiness, dimensions,
 duration, URL, and provenance. Agent operations and Timeline `source`
 Attributes use the project-relative path.
 
-Use `starcut__grep` for VML or Markdown source. VML matches can include
+Use `grep` for VML or Markdown source. VML matches can include
 Node IDs; Markdown matches identify the file and matching line. It does not
 search Artifact content or metadata.
 
 ## Query Catalogs
 
-`starcut__query` reads one leaf catalog selected by `kind`:
+`query` reads one leaf catalog selected by `kind`:
 
 | `kind` | Use |
 |---|---|
 | `model` | Resolve live model capabilities for one intent |
+| `voice` | Resolve live TTS voices for one exact model ID |
 | `font` | Find curated fonts and supported weights, styles, and subsets |
 | `bgm` | Find reusable background music before generating new music |
 | `sfx` | Find reusable sound effects before generating a new one |
@@ -161,27 +154,27 @@ search Artifact content or metadata.
 Reuse compatible results already present in the conversation. Query again only
 when the previous result does not cover the current intent or filters.
 
-Consume `model` and `font` results directly. Results for `bgm`, `sfx`, `fx`,
+Consume `model`, `voice`, and `font` results directly. Results for `bgm`, `sfx`, `fx`,
 `mg`, and `sticker` have a `libraryId`; after choosing one, call
-`starcut__use_library` with that ID and the current `projectId`. Use a
+`use_library` with that ID and the current `contextId`. Use a
 returned `path` as a Clip source, or the returned FX tag, placements, and
-parameters in a compatible Clip or `EffectTrack`. Resource storage and sharing
-scope are server concerns; do not infer behavior from the ID.
+parameters in a compatible Clip or `EffectTrack`. Treat every `libraryId` as
+an opaque value.
 
 ## Write and Update
 
-MCP calls use the structured fields shown below. Do not encode multiple Node
+StarCut tools use the structured fields shown below. Do not encode multiple Node
 mutations into one string.
 
 ### Project Metadata
 
 `project.json` is system-owned. Do not create, replace, move, rename, or delete
-it. Use `starcut__update_project` for explicit name, description, or cover
+it. Use `update_project` for explicit name, description, or cover
 changes:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "name": "Summer Launch",
   "coverUrl": "https://cdn.example.com/summer-cover.webp"
 }
@@ -191,28 +184,28 @@ changes:
 
 ### VML Files
 
-Use `starcut__write` to create a complete Composition VML file:
+Use `write` to create a complete Composition VML file:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "path": "compositions/main.vml",
   "content": "<Composition width=\"1920\" height=\"1080\" fps=\"30\" backgroundColor=\"#000000\"><VideoTrack name=\"Main\" /></Composition>"
 }
 ```
 
 Omit VML IDs. Include a main `VideoTrack` when creating a Composition;
-`starcut__write` does not add one implicitly.
+`write` does not add one implicitly.
 
 Treat complete replacement as exceptional. Use it for creation or when the
 user explicitly requests a full rewrite. Replacing VML recreates descendants
 while preserving the file path and root ID.
 
-Use `starcut__add_node` to add one child or subtree to an existing parent:
+Use `add_node` to add one child or subtree to an existing parent:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "path": "compositions/main.vml",
   "parentId": "track-id",
   "beforeId": "optional-sibling-id",
@@ -222,12 +215,12 @@ Use `starcut__add_node` to add one child or subtree to an existing parent:
 
 Omit `beforeId` to append. Omit all IDs from the new subtree.
 
-Use `starcut__update_node` to change Attributes and/or one exact Text Data
+Use `update_node` to change Attributes and/or one exact Text Data
 range on an existing Node:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "path": "compositions/main.vml",
   "nodeId": "clip-id",
   "attributes": {
@@ -240,7 +233,7 @@ range on an existing Node:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "path": "compositions/main.vml",
   "nodeId": "text-clip-id",
   "textData": {
@@ -253,32 +246,32 @@ range on an existing Node:
 Text Data SEARCH must match exactly once. Replace the whole Text Data value only
 when the user intends a complete body rewrite. Never change `id`.
 
-Use `starcut__move_node` to reorder a child or move it to another compatible
+Use `move_node` to reorder a child or move it to another compatible
 parent. Omit `parentId` to keep the current parent, and omit `beforeId` to append.
-Never write internal owner or order fields.
+Do not encode parentage or ordering manually.
 
-Use `starcut__delete_node` only for a non-root Node. Deletion includes its
+Use `delete_node` only for a non-root Node. Deletion includes its
 descendants and is rejected when the remaining document would be invalid.
 
 ### Source Files
 
-Use `starcut__write` to create a complete Markdown file under `docs/`, or
+Use `write` to create a complete Markdown file under `docs/`, or
 a complete SVG or MG source under `assets/`:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "path": "docs/script.md",
   "content": "# Product Launch\n\nAvailable now."
 }
 ```
 
-Markdown, SVG, and MG do not expose VML Nodes. Use `starcut__edit` for one
+Markdown, SVG, and MG do not expose VML Nodes. Use `edit` for one
 exact, unique source replacement:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "path": "assets/lower-third.mg",
   "search": "<text id=\"title\">Launch</text>",
   "replace": "<text id=\"title\">Available Now</text>"
@@ -287,26 +280,24 @@ exact, unique source replacement:
 
 Read the current source first when its exact text is unknown. Replace the
 smallest meaningful range. Do not use VML Node tools for Markdown, SVG, or MG,
-and do not use `starcut__write` merely to change copy, color, timing, or
+and do not use `write` merely to change copy, color, timing, or
 one animation detail. Load `graphics` before authoring or substantially
 changing graphic source.
 
 ## Run Project Operations
 
-Use `starcut__run_task` for media generation, SVG/MG generation, and ASR.
-If it returns `monitoring`, call `starcut__poll` with the exact `projectId`
+Use `run_task` for media generation, SVG/MG generation, and ASR.
+If it returns `monitoring`, call `poll` with the exact `contextId`
 and returned `toolCallId`; never resubmit the same request merely because it is
 still running.
 
-Only `starcut__run_task` and `starcut__client_call` are pollable. A
+Only `run_task` and `client_call` are pollable. A
 deferred operation returns a `toolCallId`; pass that same `toolCallId` to
-`starcut__poll`. `taskId` and `callId` remain compatibility aliases for
-older clients, not separate identities for new workflows. Project file and
-Node tools such as `starcut__glob`, `starcut__head`, `starcut__read`,
-`starcut__write`, and `starcut__edit` return a terminal result and
+`poll`. Project file and Node tools such as `glob`, `head`, `read`,
+`write`, and `edit` return a terminal result and
 never return `monitoring`.
 
-Use `starcut__client_call` for work that needs the connected Editor's
+Use `client_call` for work that needs the connected Editor's
 playback state, Timeline renderer, or local media:
 
 | Command | Target |
@@ -327,7 +318,7 @@ inspection:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "command": "extract_frame",
   "target": "compositions/main.vml",
   "params": { "timeUs": 1200000, "maxLongEdge": 640 }

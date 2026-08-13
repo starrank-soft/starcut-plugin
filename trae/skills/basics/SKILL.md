@@ -5,30 +5,22 @@ description: Use for StarCut project access and browser handoff, understanding p
 
 # StarCut Basics
 
+All unqualified tool names below refer to StarCut tools. If another provider
+exposes the same basename, choose the StarCut tool.
+
 Keep the StarCut project as the editable source of truth. Make changes through
 StarCut tools instead of replacing the project with a flattened local video.
 
-Use the exact StarCut MCP tool names shown throughout this host package. Resolve
-them within the `starcut` MCP server; do not rename them or substitute a tool
-from another MCP server. Host packages intentionally use different namespace
-forms around the same StarCut tool basename.
-
-## Host Connection
-
-MCP authentication and tool refresh are owned by the host. If the StarCut
-plugin is installed but its tools are absent, authenticate the configured
-`starcut` server and reload the host's plugin/tool session. Reinstalling the
-same package does not repair a missing OAuth session.
-
-TRAE often has no MCP OAuth UI. Run `node scripts/mcp-manual-oauth.mjs --host trae --write-config`, copy `.agents/skills` into the project, then start a new Agent conversation.
-
 ## Establish the Project
 
-Use the exact `projectId` returned by StarCut for every project-scoped call.
+Start with `create_project` or `open_project`, then use its returned `contextId`
+for this conversation's project work. Use `projectId` only to select an existing
+project with `open_project`.
 
 1. Call `create_project` when the user wants a new project.
 2. Call `list_projects` when an existing project is intended but
-   its ID is unknown.
+   its ID is unknown, then pass that `projectId` to
+   `open_project` to create a fresh `contextId`.
 3. Project creation does not open the editor. When the host exposes a trusted
    browser or navigation surface, make opening the exact `browserHandoff.url`
    returned by `create_project` the next action. Do not import,
@@ -37,15 +29,15 @@ Use the exact `projectId` returned by StarCut for every project-scoped call.
    never print the handoff token; ask the user to open the stable `editorUrl`
    and continue after the editor is loaded.
 4. Treat `browserHandoff.url` as a short-lived, one-time credential. Never
-   print, retain, reuse, or expose it in a Markdown link. Submit its navigation
-   once; a queued browser launch is already in progress and must not open the
-   same handoff again.
+   print, retain, reuse, or expose it in a Markdown link. Navigate it exactly
+   once.
 5. Call `open_project` to reopen an existing project or replace
    an expired handoff. Only call it when ready to open the returned URL
    immediately.
-6. A successful media import does not preserve an unopened handoff. Confirm
-   the editor first, then continue project work.
-7. Use `editorUrl` for user-facing links.
+6. Use `editorUrl` for user-facing links.
+7. Keep the returned `contextId` for this conversation only. Do not reuse a
+   context from another Agent conversation, even when both target the same
+   project.
 
 Authorization already selects the StarCut workspace. Do not ask for or pass an
 organization ID.
@@ -151,6 +143,7 @@ search Artifact content or metadata.
 | `kind` | Use |
 |---|---|
 | `model` | Resolve live model capabilities for one intent |
+| `voice` | Resolve live TTS voices for one exact model ID |
 | `font` | Find curated fonts and supported weights, styles, and subsets |
 | `bgm` | Find reusable background music before generating new music |
 | `sfx` | Find reusable sound effects before generating a new one |
@@ -161,16 +154,16 @@ search Artifact content or metadata.
 Reuse compatible results already present in the conversation. Query again only
 when the previous result does not cover the current intent or filters.
 
-Consume `model` and `font` results directly. Results for `bgm`, `sfx`, `fx`,
+Consume `model`, `voice`, and `font` results directly. Results for `bgm`, `sfx`, `fx`,
 `mg`, and `sticker` have a `libraryId`; after choosing one, call
-`use_library` with that ID and the current `projectId`. Use a
+`use_library` with that ID and the current `contextId`. Use a
 returned `path` as a Clip source, or the returned FX tag, placements, and
-parameters in a compatible Clip or `EffectTrack`. Resource storage and sharing
-scope are server concerns; do not infer behavior from the ID.
+parameters in a compatible Clip or `EffectTrack`. Treat every `libraryId` as
+an opaque value.
 
 ## Write and Update
 
-MCP calls use the structured fields shown below. Do not encode multiple Node
+StarCut tools use the structured fields shown below. Do not encode multiple Node
 mutations into one string.
 
 ### Project Metadata
@@ -181,7 +174,7 @@ changes:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "name": "Summer Launch",
   "coverUrl": "https://cdn.example.com/summer-cover.webp"
 }
@@ -195,7 +188,7 @@ Use `write` to create a complete Composition VML file:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "path": "compositions/main.vml",
   "content": "<Composition width=\"1920\" height=\"1080\" fps=\"30\" backgroundColor=\"#000000\"><VideoTrack name=\"Main\" /></Composition>"
 }
@@ -212,7 +205,7 @@ Use `add_node` to add one child or subtree to an existing parent:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "path": "compositions/main.vml",
   "parentId": "track-id",
   "beforeId": "optional-sibling-id",
@@ -227,7 +220,7 @@ range on an existing Node:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "path": "compositions/main.vml",
   "nodeId": "clip-id",
   "attributes": {
@@ -240,7 +233,7 @@ range on an existing Node:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "path": "compositions/main.vml",
   "nodeId": "text-clip-id",
   "textData": {
@@ -255,7 +248,7 @@ when the user intends a complete body rewrite. Never change `id`.
 
 Use `move_node` to reorder a child or move it to another compatible
 parent. Omit `parentId` to keep the current parent, and omit `beforeId` to append.
-Never write internal owner or order fields.
+Do not encode parentage or ordering manually.
 
 Use `delete_node` only for a non-root Node. Deletion includes its
 descendants and is rejected when the remaining document would be invalid.
@@ -267,7 +260,7 @@ a complete SVG or MG source under `assets/`:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "path": "docs/script.md",
   "content": "# Product Launch\n\nAvailable now."
 }
@@ -278,7 +271,7 @@ exact, unique source replacement:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "path": "assets/lower-third.mg",
   "search": "<text id=\"title\">Launch</text>",
   "replace": "<text id=\"title\">Available Now</text>"
@@ -294,15 +287,13 @@ changing graphic source.
 ## Run Project Operations
 
 Use `run_task` for media generation, SVG/MG generation, and ASR.
-If it returns `monitoring`, call `poll` with the exact `projectId`
+If it returns `monitoring`, call `poll` with the exact `contextId`
 and returned `toolCallId`; never resubmit the same request merely because it is
 still running.
 
 Only `run_task` and `client_call` are pollable. A
 deferred operation returns a `toolCallId`; pass that same `toolCallId` to
-`poll`. `taskId` and `callId` remain compatibility aliases for
-older clients, not separate identities for new workflows. Project file and
-Node tools such as `glob`, `head`, `read`,
+`poll`. Project file and Node tools such as `glob`, `head`, `read`,
 `write`, and `edit` return a terminal result and
 never return `monitoring`.
 
@@ -327,7 +318,7 @@ inspection:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "command": "extract_frame",
   "target": "compositions/main.vml",
   "params": { "timeUs": 1200000, "maxLongEdge": 640 }

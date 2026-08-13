@@ -5,6 +5,9 @@ description: Use when creating or editing StarCut decorative elements, including
 
 # Graphics
 
+All unqualified tool names below refer to StarCut tools. If another provider
+exposes the same basename, choose the StarCut tool.
+
 Treat decorative graphics as one product category with two authored formats:
 
 | Need | Task | Artifact | Timeline Clip |
@@ -16,52 +19,55 @@ Treat decorative graphics as one product category with two authored formats:
 
 - Before creating a generic reusable graphic, query `sticker` for static SVG
   or `mg` for animated components. If a result fits, call
-  `mcp__plugin_starcut_starcut__use_library` with its `libraryId` and the current `projectId`,
+  `use_library` with its `libraryId` and the current `contextId`,
   then use the returned editable Artifact. Skip discovery when the user
   explicitly requests a custom design.
-- When no Library result fits, use `mcp__plugin_starcut_starcut__run_task` with
+- When no Library result fits, use `run_task` with
   `task: "create_svg"` or `task: "create_mg"`.
-- Use `mcp__plugin_starcut_starcut__write` only when the current Agent deliberately authors
+- Use `write` only when the current Agent deliberately authors
   the complete source itself.
-- For an existing graphic, use `mcp__plugin_starcut_starcut__read` followed by
-  `mcp__plugin_starcut_starcut__edit` for a focused change.
+- For an existing graphic, use `read` followed by
+  `edit` for a focused change.
   Do not regenerate an existing Artifact merely to change copy, color, timing,
   or one animation detail.
 - Treat creation and Timeline placement as separate actions. Creation returns
   an editable text Artifact; place it only when the user asks.
 
 Both Tasks accept `prompt`, optional `name`, `width`, `height`, `modelId`, and
-optional `referenceImages`, `referenceVideos`, and `referenceAudios`. Each
-reference list contains exact project paths returned by StarCut tools.
-`create_mg` additionally accepts `durationUs` in integer microseconds. Omit
-`modelId` to use the primary reasoning model.
+optional `inputs`. Each input contains an exact project `path` returned by
+StarCut tools and the `reference` role. `create_mg` additionally accepts
+`durationUs` in integer microseconds. Omit `modelId` to use the primary
+reasoning model.
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "task": "create_mg",
   "params": {
     "prompt": "A restrained lower third for a product launch",
     "width": 1920,
     "height": 1080,
     "durationUs": 5000000,
-    "referenceImages": ["assets/product-reference.png"]
+    "inputs": [{
+      "path": "assets/product-reference.png",
+      "role": "reference"
+    }]
   }
 }
 ```
 
-If `mcp__plugin_starcut_starcut__run_task` returns `monitoring`, call `mcp__plugin_starcut_starcut__poll`
-with the exact `projectId` and returned `toolCallId`. Never resubmit the same
+If `run_task` returns `monitoring`, call `poll`
+with the exact `contextId` and returned `toolCallId`. Never resubmit the same
 creation request.
 
 ## Edit Existing Source
 
 SVG and Motion Graphic source files are editable text Artifacts, not VML documents or Nodes. Read the
-current raw source, then call `mcp__plugin_starcut_starcut__edit` with one exact replacement:
+current raw source, then call `edit` with one exact replacement:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "path": "assets/lower-third.mg",
   "search": "<text id=\"title\">Launch</text>",
   "replace": "<text id=\"title\">Available Now</text>"
@@ -74,7 +80,7 @@ SVG copy, color, geometry, filter, and attribute changes, and for focused `.mg`
 copy, data, duration, or timeline changes.
 
 Do not use VML Node tools for SVG or Motion Graphic source. Do not use
-`mcp__plugin_starcut_starcut__write` merely to update an existing graphic; reserve complete
+`write` merely to update an existing graphic; reserve complete
 replacement for an explicitly requested rewrite. A successful edit keeps the
 same project path, so existing Timeline Clip sources remain valid.
 

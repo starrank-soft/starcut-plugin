@@ -8,3 +8,10 @@ start a new session:
 ```bash
 opencode mcp auth starcut
 ```
+
+On Windows, the bundled installer copies the skills, merges only the
+`mcp.starcut` entry, and starts authentication:
+
+```powershell
+.\install.ps1 -Project C:\path\to\project
+```

@@ -5,6 +5,9 @@ description: Use when creating or editing StarCut decorative elements, including
 
 # Graphics
 
+All unqualified tool names below refer to StarCut tools. If another provider
+exposes the same basename, choose the StarCut tool.
+
 Treat decorative graphics as one product category with two authored formats:
 
 | Need | Task | Artifact | Timeline Clip |
@@ -16,7 +19,7 @@ Treat decorative graphics as one product category with two authored formats:
 
 - Before creating a generic reusable graphic, query `sticker` for static SVG
   or `mg` for animated components. If a result fits, call
-  `use_library` with its `libraryId` and the current `projectId`,
+  `use_library` with its `libraryId` and the current `contextId`,
   then use the returned editable Artifact. Skip discovery when the user
   explicitly requests a custom design.
 - When no Library result fits, use `run_task` with
@@ -31,27 +34,30 @@ Treat decorative graphics as one product category with two authored formats:
   an editable text Artifact; place it only when the user asks.
 
 Both Tasks accept `prompt`, optional `name`, `width`, `height`, `modelId`, and
-optional `referenceImages`, `referenceVideos`, and `referenceAudios`. Each
-reference list contains exact project paths returned by StarCut tools.
-`create_mg` additionally accepts `durationUs` in integer microseconds. Omit
-`modelId` to use the primary reasoning model.
+optional `inputs`. Each input contains an exact project `path` returned by
+StarCut tools and the `reference` role. `create_mg` additionally accepts
+`durationUs` in integer microseconds. Omit `modelId` to use the primary
+reasoning model.
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "task": "create_mg",
   "params": {
     "prompt": "A restrained lower third for a product launch",
     "width": 1920,
     "height": 1080,
     "durationUs": 5000000,
-    "referenceImages": ["assets/product-reference.png"]
+    "inputs": [{
+      "path": "assets/product-reference.png",
+      "role": "reference"
+    }]
   }
 }
 ```
 
 If `run_task` returns `monitoring`, call `poll`
-with the exact `projectId` and returned `toolCallId`. Never resubmit the same
+with the exact `contextId` and returned `toolCallId`. Never resubmit the same
 creation request.
 
 ## Edit Existing Source
@@ -61,7 +67,7 @@ current raw source, then call `edit` with one exact replacement:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "path": "assets/lower-third.mg",
   "search": "<text id=\"title\">Launch</text>",
   "replace": "<text id=\"title\">Available Now</text>"
