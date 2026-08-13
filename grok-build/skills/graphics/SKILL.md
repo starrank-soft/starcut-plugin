@@ -31,10 +31,10 @@ Treat decorative graphics as one product category with two authored formats:
   an editable text Artifact; place it only when the user asks.
 
 Both Tasks accept `prompt`, optional `name`, `width`, `height`, `modelId`, and
-optional `referenceImages`, `referenceVideos`, and `referenceAudios`. Each
-reference list contains exact project paths returned by StarCut tools.
-`create_mg` additionally accepts `durationUs` in integer microseconds. Omit
-`modelId` to use the primary reasoning model.
+optional `inputs`. Each input contains an exact project `path` returned by
+StarCut tools and the `reference` role. `create_mg` additionally accepts
+`durationUs` in integer microseconds. Omit `modelId` to use the primary
+reasoning model.
 
 ```json
 {
@@ -45,7 +45,10 @@ reference list contains exact project paths returned by StarCut tools.
     "width": 1920,
     "height": 1080,
     "durationUs": 5000000,
-    "referenceImages": ["assets/product-reference.png"]
+    "inputs": [{
+      "path": "assets/product-reference.png",
+      "role": "reference"
+    }]
   }
 }
 ```

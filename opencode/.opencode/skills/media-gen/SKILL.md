@@ -45,11 +45,12 @@ Query exactly one intent:
 Choose an enabled result using its `summary`. Copy its `modelId` exactly. Then
 read:
 
-- `inputModes` for valid combinations of first, last, and reference media;
-- each slot's `role`, `mediaKind`, and `max`;
-- `textInput`, when present, for the hard primary `prompt` or `text` limit;
-  compare `maxUnits` using its declared `unit`;
-- `params` for exact parameter keys, types, choices, defaults, and limits;
+- `input.primary` for the exact required `prompt` or `text` key and hard
+  `limit`, when present;
+- `input.inputs.modes` for mutually exclusive media combinations; choose one
+  mode and follow each entry in `accepts` by `role`, `mediaKind`, and `max`;
+- `input.parameters` for exact parameter keys, types, choices, defaults, and
+  limits;
 - `features` for model-specific capabilities.
 
 Do not merge slots from different input modes. Do not use remembered model
@@ -88,28 +89,29 @@ Locate a path with `starcut_glob` and inspect it with
 `starcut_head`. Pass that path directly; never pass a URL, binary data,
 or base64 as model media input.
 
-Stable media-slot mappings are:
+Put every media item in one `inputs` array. Each item has the project `path`
+and the exact `role` accepted by the selected mode:
 
-| Query slot | Task input |
-|---|---|
-| first image | `firstFrame` |
-| last image | `lastFrame` |
-| reference images | `referenceImages` |
-| reference videos | `referenceVideos` |
-| reference audios | `referenceAudios` |
+```json
+"inputs": [
+  { "path": "assets/start.png", "role": "first" },
+  { "path": "assets/end.png", "role": "last" }
+]
+```
 
-Add only slots from the selected `inputMode`.
+Artifact kind is resolved from the project path. Do not send `mediaKind` or
+provider tags. Do not mix entries from different modes.
 
 ## Image
 
 Image generation and editing share the `generate` Task.
 
-Stable input:
+Primary input:
 
 | Field | Meaning |
 |---|---|
 | `prompt` | The requested image or edit |
-| `referenceImages` | Optional project-path array for editing or guidance |
+| `inputs` | Optional role-based project media list |
 
 Common model parameters include `aspectRatio`, `resolution`, and sometimes
 `quality`; use only keys and values returned by `starcut_query`.
@@ -143,7 +145,10 @@ Editing adds references rather than changing the Task type:
     "name": "product-hero-edited.png",
     "input": {
       "prompt": "Preserve the product and replace only the background",
-      "referenceImages": ["assets/product-reference.png"],
+      "inputs": [{
+        "path": "assets/product-reference.png",
+        "role": "reference"
+      }],
       "aspectRatio": "16:9",
       "resolution": "2K"
     }
@@ -153,11 +158,11 @@ Editing adds references rather than changing the Task type:
 
 ## Video
 
-Stable input begins with `prompt`. Depending on the selected input mode, it may
-also contain either:
+Input begins with `prompt`. Depending on the selected input mode, `inputs` may
+contain either:
 
-- `firstFrame` and optionally `lastFrame`; or
-- `referenceImages`, `referenceVideos`, and `referenceAudios`.
+- `first` and optionally `last` roles; or
+- one or more `reference` roles of the accepted media kinds.
 
 Common model parameters include `aspectRatio`, `resolution`, `duration`, and
 `generateAudio`. Their allowed values and compatible media combinations are
@@ -172,7 +177,10 @@ model-specific and must come from `starcut_query`.
     "name": "product-reveal.mp4",
     "input": {
       "prompt": "Slow cinematic push-in while light moves across the product",
-      "firstFrame": "assets/product-hero.png",
+      "inputs": [{
+        "path": "assets/product-hero.png",
+        "role": "first"
+      }],
       "aspectRatio": "16:9",
       "resolution": "720p",
       "duration": 5,
@@ -204,7 +212,7 @@ Music uses `prompt` for genre, mood, instrumentation, tempo, structure, and
 intended use. Common model parameters include `duration` and `instrumental`.
 Summarize the musical direction instead of pasting a script, document, or
 storyboard into `prompt`. Prefer at most 300 characters even when the queried
-model allows more. Never exceed the queried `textInput` limit when present.
+model allows more. Never exceed `input.primary.limit` when present.
 
 ```json
 {
@@ -243,8 +251,9 @@ current `projectId`, then use the returned Artifact. Query `kind: "model"` with
 intent `audio.sfx` and generate only when the Library has no suitable result.
 
 Sound effects use `prompt` for the audible event, environment, perspective,
-intensity, and temporal shape. Common model parameters include `duration`,
-`promptInfluence`, and `loop`.
+intensity, and temporal shape. Some models expose controls such as `duration`,
+`promptInfluence`, or `loop`; include only parameters returned by the selected
+model query.
 
 ```json
 {
@@ -254,10 +263,7 @@ intensity, and temporal shape. Common model parameters include `duration`,
     "modelId": "sfx-model-id-from-query",
     "name": "logo-whoosh.mp3",
     "input": {
-      "prompt": "Short polished metallic whoosh ending in a soft low impact",
-      "duration": 4,
-      "promptInfluence": 0.3,
-      "loop": false
+      "prompt": "Short polished metallic whoosh ending in a soft low impact"
     }
   }
 }
@@ -268,15 +274,27 @@ parameter contracts even though both produce Audio Artifacts.
 
 ## Text-to-Speech
 
-TTS uses `text`, not `prompt`. Model parameters are model-specific and must come
-from `query`; `voice` is a catalog value, not free-form text.
+TTS uses the primary key returned by the model query (`text` for current TTS
+models), not Nexra's internal `texts` wire field. If `input.parameters`
+contains a `voice` catalog parameter, query its live choices for the selected
+model:
+
+```json
+{
+  "kind": "voice",
+  "where": { "modelId": "tts-model-id-from-query" }
+}
+```
+
+Optionally add `q` to search by name, ID, language, category, or emotion. Use a
+returned voice `id`; do not invent one.
 
 Do not send a complete long script in one Task. Preserve the exact authored
 copy, split it at paragraph or sentence boundaries, and generate one ordered
 Artifact per chunk. Keep each chunk around 500 characters: up to 500 is the
 comfortable range; above 500 and below 1000 may preserve a semantic unit but
 is more likely to be slow; 1000 or more should be split even when the model's
-hard limit is larger. A lower queried `textInput` limit always wins. If one
+hard limit is larger. A lower `input.primary.limit` always wins. If one
 sentence is too long, split at clause punctuation without rewriting or
 dropping text.
 
@@ -289,15 +307,14 @@ dropping text.
     "name": "narration.mp3",
     "input": {
       "text": "让每一次创作，都更接近你的想象。",
-      "voice": "Rachel"
+      "voice": "voice-id-from-query"
     }
   }
 }
 ```
 
-For catalog-backed parameters such as `voice`, use the returned default or a
-known value supported by that catalog. Do not invent a voice identifier or
-submit provider encoding parameters.
+The voice query returns `defaultVoiceId` when the model default is available.
+Do not submit provider encoding parameters.
 
 ## Poll and Use the Result
 
