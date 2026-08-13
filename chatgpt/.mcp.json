@@ -2,7 +2,6 @@
   "mcpServers": {
     "starcut": {
       "oauth_resource": "https://api.starcut.io/mcp",
-      "required": true,
       "url": "https://api.starcut.io/mcp"
     }
   }
