@@ -5,6 +5,9 @@ description: Use when creating or editing StarCut decorative elements, including
 
 # Graphics
 
+All unqualified tool names below refer to StarCut tools. If another provider
+exposes the same basename, choose the StarCut tool.
+
 Treat decorative graphics as one product category with two authored formats:
 
 | Need | Task | Artifact | Timeline Clip |
@@ -16,15 +19,15 @@ Treat decorative graphics as one product category with two authored formats:
 
 - Before creating a generic reusable graphic, query `sticker` for static SVG
   or `mg` for animated components. If a result fits, call
-  `starcut__use_library` with its `libraryId` and the current `projectId`,
+  `use_library` with its `libraryId` and the current `contextId`,
   then use the returned editable Artifact. Skip discovery when the user
   explicitly requests a custom design.
-- When no Library result fits, use `starcut__run_task` with
+- When no Library result fits, use `run_task` with
   `task: "create_svg"` or `task: "create_mg"`.
-- Use `starcut__write` only when the current Agent deliberately authors
+- Use `write` only when the current Agent deliberately authors
   the complete source itself.
-- For an existing graphic, use `starcut__read` followed by
-  `starcut__edit` for a focused change.
+- For an existing graphic, use `read` followed by
+  `edit` for a focused change.
   Do not regenerate an existing Artifact merely to change copy, color, timing,
   or one animation detail.
 - Treat creation and Timeline placement as separate actions. Creation returns
@@ -38,7 +41,7 @@ reasoning model.
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "task": "create_mg",
   "params": {
     "prompt": "A restrained lower third for a product launch",
@@ -53,18 +56,18 @@ reasoning model.
 }
 ```
 
-If `starcut__run_task` returns `monitoring`, call `starcut__poll`
-with the exact `projectId` and returned `toolCallId`. Never resubmit the same
+If `run_task` returns `monitoring`, call `poll`
+with the exact `contextId` and returned `toolCallId`. Never resubmit the same
 creation request.
 
 ## Edit Existing Source
 
 SVG and Motion Graphic source files are editable text Artifacts, not VML documents or Nodes. Read the
-current raw source, then call `starcut__edit` with one exact replacement:
+current raw source, then call `edit` with one exact replacement:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "path": "assets/lower-third.mg",
   "search": "<text id=\"title\">Launch</text>",
   "replace": "<text id=\"title\">Available Now</text>"
@@ -77,7 +80,7 @@ SVG copy, color, geometry, filter, and attribute changes, and for focused `.mg`
 copy, data, duration, or timeline changes.
 
 Do not use VML Node tools for SVG or Motion Graphic source. Do not use
-`starcut__write` merely to update an existing graphic; reserve complete
+`write` merely to update an existing graphic; reserve complete
 replacement for an explicitly requested rewrite. A successful edit keeps the
 same project path, so existing Timeline Clip sources remain valid.
 

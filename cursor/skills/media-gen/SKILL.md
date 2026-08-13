@@ -5,6 +5,9 @@ description: Use when generating or editing StarCut image, video, music, sound-e
 
 # StarCut Media Generation
 
+All unqualified tool names below refer to StarCut tools. If another provider
+exposes the same basename, choose the StarCut tool.
+
 All generated media follows one workflow:
 
 ```text
@@ -63,7 +66,7 @@ Submit one generation with:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "task": "generate",
   "params": {
     "modelId": "model-id-from-query",
@@ -99,8 +102,8 @@ and the exact `role` accepted by the selected mode:
 ]
 ```
 
-Artifact kind is resolved from the project path. Do not send `mediaKind` or
-provider tags. Do not mix entries from different modes.
+Artifact kind is resolved from the project path. Do not add fields not defined
+by the selected input mode or mix entries from different modes.
 
 ## Image
 
@@ -120,7 +123,7 @@ Generation:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "task": "generate",
   "params": {
     "modelId": "image-model-id-from-query",
@@ -138,7 +141,7 @@ Editing adds references rather than changing the Task type:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "task": "generate",
   "params": {
     "modelId": "image-edit-model-id-from-query",
@@ -170,7 +173,7 @@ model-specific and must come from `query`.
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "task": "generate",
   "params": {
     "modelId": "video-model-id-from-query",
@@ -205,7 +208,7 @@ Before generating a generic music bed, query the curated BGM Library:
 ```
 
 If a result fits, call `use_library` with its `libraryId` and the
-current `projectId`, then use the returned Artifact. Generate only when the
+current `contextId`, then use the returned Artifact. Generate only when the
 Library has no suitable result or the user explicitly requests original music.
 
 Music uses `prompt` for genre, mood, instrumentation, tempo, structure, and
@@ -216,7 +219,7 @@ model allows more. Never exceed `input.primary.limit` when present.
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "task": "generate",
   "params": {
     "modelId": "music-model-id-from-query",
@@ -231,8 +234,7 @@ model allows more. Never exceed `input.primary.limit` when present.
 ```
 
 Use the queried duration range. Do not assume that every music model supports
-lyrics or instrumental control. StarCut owns the audio delivery format; do not
-submit provider encoding parameters.
+lyrics or instrumental control. Use only parameters exposed by the model query.
 
 ## Sound Effects
 
@@ -247,7 +249,7 @@ Library:
 ```
 
 If a result fits, call `use_library` with its `libraryId` and the
-current `projectId`, then use the returned Artifact. Query `kind: "model"` with
+current `contextId`, then use the returned Artifact. Query `kind: "model"` with
 intent `audio.sfx` and generate only when the Library has no suitable result.
 
 Sound effects use `prompt` for the audible event, environment, perspective,
@@ -257,7 +259,7 @@ model query.
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "task": "generate",
   "params": {
     "modelId": "sfx-model-id-from-query",
@@ -274,10 +276,9 @@ parameter contracts even though both produce Audio Artifacts.
 
 ## Text-to-Speech
 
-TTS uses the primary key returned by the model query (`text` for current TTS
-models), not Nexra's internal `texts` wire field. If `input.parameters`
-contains a `voice` catalog parameter, query its live choices for the selected
-model:
+Use only TTS input keys returned by the selected model query. If
+`input.parameters` contains a `voice` catalog parameter, query its live choices
+for the selected model:
 
 ```json
 {
@@ -300,7 +301,7 @@ dropping text.
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "task": "generate",
   "params": {
     "modelId": "tts-model-id-from-query",
@@ -314,13 +315,13 @@ dropping text.
 ```
 
 The voice query returns `defaultVoiceId` when the model default is available.
-Do not submit provider encoding parameters.
+Use only parameters exposed by the model query.
 
 ## Poll and Use the Result
 
 `run_task` returns stable Task and Artifact identities without
 waiting for generation to finish. If the workflow depends on progress or
-output, call `poll` with the exact `projectId` and returned
+output, call `poll` with the exact `contextId` and returned
 `toolCallId`.
 Never resubmit a queued or running Task.
 

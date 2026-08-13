@@ -5,6 +5,9 @@ description: Use when getting timestamped transcripts from StarCut audio or vide
 
 # Transcription and Captions
 
+All unqualified tool names below refer to StarCut tools. If another provider
+exposes the same basename, choose the StarCut tool.
+
 Use one transcript workflow for both readable transcripts and Timeline
 captions:
 
@@ -16,29 +19,25 @@ Audio or Video Artifact
 → optional CaptionClip
 ```
 
-StarCut stores the transcript in the canonical Audio Artifact metadata. It does
-not create a transcript Artifact or file. Create a `docs/*.md` Markdown file
-only when the user separately asks to preserve readable transcript copy.
+`get_transcript` returns transcript data directly; it does not create a
+transcript file. Create a `docs/*.md` file only when the user asks to preserve
+readable transcript copy.
 
 ## Operations
 
 | Need | Call |
 |---|---|
-| Get a cached transcript or prepare canonical audio | `client_call` with `command: "get_transcript"` |
+| Get or prepare a transcript | `client_call` with `command: "get_transcript"` |
 | Materialize audio or select a source range | `client_call` with `command: "extract_audio"` |
 | Run ASR on an exact ready Audio Artifact | `run_task` with `task: "transcribe"` |
 | Generate speech | `query` with `kind: "model"` and intent `audio.tts`, then `run_task(generate)` |
 | Persist captions | StarCut Node tools on the target Timeline |
 
 Use `client_call` with `command: "get_transcript"` by default for both
-Audio and Video Artifacts. For Video,
-the connected editor prepares, uploads, and reuses its canonical full-length
-Audio Artifact before ASR. Repeated calls reuse the linked audio and completed
-transcript.
+Audio and Video Artifacts. Repeated calls may reuse a completed transcript.
 
-The `get_transcript` command only resolves cached transcript metadata and
-prepares canonical audio. If it returns `succeeded`, consume the transcript. If
-it returns `prepared`, call `run_task` once with the returned
+If `get_transcript` returns `succeeded`, consume the transcript. If it returns
+`prepared`, call `run_task` once with the returned
 `runTask` value. Merge any chosen `modelId`, `language`, `diarize`, or
 `keyterms` into `runTask.params`. If that Task is still running, call
 `poll` with its returned `toolCallId`; do not call
@@ -51,7 +50,7 @@ Locate the source with `glob`, inspect it with
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "command": "get_transcript",
   "target": "assets/dialogue.mp4"
 }
@@ -84,7 +83,7 @@ range:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "command": "extract_audio",
   "target": "assets/interview.mp4",
   "params": {

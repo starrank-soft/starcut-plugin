@@ -5,6 +5,9 @@ description: Use when creating or editing StarCut Timelines, including Compositi
 
 # Timeline Editing
 
+All unqualified tool names below refer to StarCut tools. If another provider
+exposes the same basename, choose the StarCut tool.
+
 Timeline documents live at `compositions/*.vml` with a `<Composition>` root.
 Use “Timeline” for the product and workflow concept; use “Composition” for its
 VML Node and renderer type.
@@ -38,18 +41,18 @@ Tracks and Clips are direct ordered children. There are no `Tracks`, `Clips`,
 
 - Use integer microseconds for Composition, Clip, source-range, and fade times.
   One second is `1000000`.
-- Existing Nodes returned by `starcut_read` have immutable IDs. Never
+- Existing Nodes returned by `read` have immutable IDs. Never
   invent an ID.
-- Omit IDs from complete VML supplied to `starcut_write` and subtrees
-  supplied to `starcut_add_node`; StarCut assigns them.
+- Omit IDs from complete VML supplied to `write` and subtrees
+  supplied to `add_node`; StarCut assigns them.
 - Attributes with defaults may be omitted. A read may omit an Attribute whose
   current value equals its Schema default.
 - Use tags such as `<VideoTrack>` and `<VideoClip>`; do not write
   `<Track type="video">` or `<Clip type="video">`.
 - A complete write is exact and does not add the Schema's initial VideoTrack.
   Include every desired Track when creating a Composition.
-- Use `starcut_add_node`, `starcut_update_node`,
-  `starcut_move_node`, or `starcut_delete_node` for focused
+- Use `add_node`, `update_node`,
+  `move_node`, or `delete_node` for focused
   changes to an existing Timeline. Do not replace the complete document when a
   Node mutation expresses the change.
 
@@ -132,8 +135,8 @@ Clips. It is not stored. There are no `Duration`, `Resolution`, or `Fps` child
 Nodes.
 
 Creating a Timeline in the editor starts with one `<VideoTrack name="Video">`.
-A complete `starcut_write` uses the supplied VML exactly, so include that
-Track explicitly when creating a Timeline through MCP.
+A complete `write` uses the supplied VML exactly, so include that
+Track explicitly when creating a Timeline.
 
 ## Tracks
 
@@ -199,8 +202,8 @@ and animated ones as `MotionGraphicClip`, then order their Track according to
 whether they should cover captions.
 
 Before creating a generic overlay, query `sticker` or `mg`. When a result fits,
-call `starcut_use_library` with its `libraryId` and the current
-`projectId`, then use the returned `path` as the Clip source. Create a custom
+call `use_library` with its `libraryId` and the current
+`contextId`, then use the returned `path` as the Clip source. Create a custom
 graphic only when no resource fits or the user requests an original design.
 
 ## Common Clip Timeline
@@ -242,7 +245,7 @@ For linear playback, speed is derived rather than stored:
 playbackRate = sourceDuration / duration
 ```
 
-There is no `speed` Attribute. Use `starcut_head` to inspect a media source before
+There is no `speed` Attribute. Use `head` to inspect a media source before
 choosing its range. The Schema validates the numeric range shape, while the
 author must keep it within the intended source content.
 
@@ -257,7 +260,7 @@ author must keep it within the intended source content.
 | `CaptionClip` | optional `AudioTrack` or `VideoTrack` | exact existing Track ID |
 | `MotionGraphicClip` | MotionGraphic Artifact | exact `assets/*.mg` path |
 
-Use exact paths returned by `starcut_glob`, `starcut_head`, current VML, or a completed
+Use exact paths returned by `glob`, `head`, current VML, or a completed
 generation/import operation. Never invent an Artifact path and never put a raw
 storage or CDN URL in VML.
 
@@ -356,11 +359,10 @@ Crop Attributes as VideoClip. It also supports visual `fadeInDuration` and
 ## Effects
 
 An Effect uses a registered public tag and supports the placements declared by
-that registration. Never write a generic `<Effect>` tag, an internal `source`,
-or `scope`, `target`, `targetId`, `from`, or `to` Attributes.
+that registration. Never invent an Effect tag, placement, or Attribute.
 
-Query `fx`, choose a result, then call `starcut_use_library` with its
-`libraryId` and the current `projectId`. The returned `effect` contains the
+Query `fx`, choose a result, then call `use_library` with its
+`libraryId` and the current `contextId`. The returned `effect` contains the
 public tag, allowed placements, and current parameters. Use that definition
 instead of memorizing a static Effect catalog.
 
@@ -376,7 +378,7 @@ Inside VideoClip or ImageClip, `start` is Clip-local and the effective output is
 clipped to the parent Clip. Sibling Effects may overlap and execute in child order, so order is
 significant. Inside EffectTrack, the Effect is a normal Timeline item; items on
 one EffectTrack cannot overlap, while separate EffectTracks may overlap.
-Use only a placement returned by `starcut_use_library`; never infer it
+Use only a placement returned by `use_library`; never infer it
 from the Effect name.
 
 An EffectTrack processes the composited Canvas layers below it at its Track
@@ -424,7 +426,7 @@ Attributes when the whole text layer needs an entrance or exit.
 
 Use the default `sans-serif` without querying when no specific typography is
 required. For an intentional font choice, reuse a compatible font query already
-present in the conversation; otherwise call `starcut_query` with
+present in the conversation; otherwise call `query` with
 `kind: "font"` and write the returned stable `id` to `fontFamily`. Never invent
 a catalog font ID.
 
@@ -524,15 +526,15 @@ animation; MotionGraphicClip has no dedicated fade Attributes.
 
 - Read the exact document or Node before editing only when current IDs or values
   are not already in context.
-- Use `starcut_update_node` for Clip or Track Attributes and for exact
+- Use `update_node` for Clip or Track Attributes and for exact
   TextClip or CaptionClip Text Data replacement.
-- Use `starcut_add_node` on a Composition to add a Track, on a Track to
+- Use `add_node` on a Composition to add a Track, on a Track to
   add one compatible Clip, or on a VideoClip or ImageClip to add a registered
   Effect tag.
   Use `beforeId` only for an intentional ordered insertion.
-- Use `starcut_move_node` to reorder a Node or move it to a compatible
-  parent. Never write internal owner or order fields.
-- Use `starcut_delete_node` only after removing inbound references and
+- Use `move_node` to reorder a Node or move it to a compatible
+  parent. Do not encode parentage or ordering manually.
+- Use `delete_node` only after removing inbound references and
   while preserving at least one VideoTrack.
 - Keep TextClip copy in direct Text Data. Edit CaptionClip Caption Text Data as
   one value; its `p` and `span` elements are text syntax, not Nodes.

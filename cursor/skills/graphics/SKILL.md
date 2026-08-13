@@ -5,6 +5,9 @@ description: Use when creating or editing StarCut decorative elements, including
 
 # Graphics
 
+All unqualified tool names below refer to StarCut tools. If another provider
+exposes the same basename, choose the StarCut tool.
+
 Treat decorative graphics as one product category with two authored formats:
 
 | Need | Task | Artifact | Timeline Clip |
@@ -16,7 +19,7 @@ Treat decorative graphics as one product category with two authored formats:
 
 - Before creating a generic reusable graphic, query `sticker` for static SVG
   or `mg` for animated components. If a result fits, call
-  `use_library` with its `libraryId` and the current `projectId`,
+  `use_library` with its `libraryId` and the current `contextId`,
   then use the returned editable Artifact. Skip discovery when the user
   explicitly requests a custom design.
 - When no Library result fits, use `run_task` with
@@ -38,7 +41,7 @@ reasoning model.
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "task": "create_mg",
   "params": {
     "prompt": "A restrained lower third for a product launch",
@@ -54,7 +57,7 @@ reasoning model.
 ```
 
 If `run_task` returns `monitoring`, call `poll`
-with the exact `projectId` and returned `toolCallId`. Never resubmit the same
+with the exact `contextId` and returned `toolCallId`. Never resubmit the same
 creation request.
 
 ## Edit Existing Source
@@ -64,7 +67,7 @@ current raw source, then call `edit` with one exact replacement:
 
 ```json
 {
-  "projectId": "project-id",
+  "contextId": "context-id",
   "path": "assets/lower-third.mg",
   "search": "<text id=\"title\">Launch</text>",
   "replace": "<text id=\"title\">Available Now</text>"
