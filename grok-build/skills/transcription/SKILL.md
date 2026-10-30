@@ -30,11 +30,22 @@ readable transcript copy.
 | Get or prepare a transcript | `client_call` with `command: "get_transcript"` |
 | Materialize audio or select a source range | `client_call` with `command: "extract_audio"` |
 | Run ASR on an exact ready Audio Artifact | `run_task` with `task: "transcribe"` |
-| Generate speech | `query` with `kind: "model"` and intent `audio.tts`, then `run_task(generate)` |
+| Generate speech | `query` with `request.kind: "model"` and intent `audio.tts`, then `run_task(generate)` |
 | Persist captions | StarCut Node tools on the target Timeline |
 
 Use `client_call` with `command: "get_transcript"` by default for both
 Audio and Video Artifacts. Repeated calls may reuse a completed transcript.
+
+Before new recognition or audio preparation, reuse any supplied transcript and
+check ASR availability once through `query` with
+`{"request":{"kind":"model","where":{"intent":"audio.asr"}}}`.
+An enabled ASR model must be available before preparing audio. If there is
+none, report ASR as unavailable; do not extract
+audio, submit `transcribe` or repeatedly query the unchanged catalog. A user
+deferral also skips new recognition. Visual master preparation can continue
+with original sound, while speech wording and alignment remain unverified.
+If `transcribe` reports a missing model or another non-retryable prerequisite,
+stop that branch; additional frame sampling cannot resolve it.
 
 If `get_transcript` returns `succeeded`, consume the transcript. If it returns
 `prepared`, call `run_task` once with the returned
@@ -60,8 +71,7 @@ When the result is `prepared`, pass its `runTask.task` and `runTask.params` to
 `run_task`. Optional ASR fields are `modelId`, `language`,
 `diarize`, and `keyterms`; add them to those Task params, not to
 `client_call`. Omit `modelId` to use the configured ASR default.
-Call `query` with `kind: "model"` and intent `audio.asr` only
-when model selection matters.
+Reuse the earlier availability query instead of querying again for each clip.
 
 Consume:
 
@@ -102,6 +112,13 @@ Do not extract full video audio as a routine precondition for the
 `get_transcript` command.
 
 ## Transcript to Timeline Captions
+
+Create visible captions only when the user requested them or an adaptation
+requires rebuilding captions lost with replaced imagery. Analysis and alignment
+keep the transcript as data. Read the Timeline and inspect the source first:
+reuse existing captions, and never overlay ASR subtitles on burned-in captions.
+Rebuilding needs a clean-picture strategy and the original typography, position,
+timing and animation; default styling is not a faithful reference reconstruction.
 
 1. Read the target Timeline and identify the source Clip and related Track.
 2. Get the transcript from its exact Audio or Video Artifact.

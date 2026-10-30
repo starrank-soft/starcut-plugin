@@ -427,7 +427,7 @@ Attributes when the whole text layer needs an entrance or exit.
 Use the default `sans-serif` without querying when no specific typography is
 required. For an intentional font choice, reuse a compatible font query already
 present in the conversation; otherwise call `query` with
-`kind: "font"` and write the returned stable `id` to `fontFamily`. Never invent
+`request.kind: "font"` and write the returned stable `id` to `fontFamily`. Never invent
 a catalog font ID.
 
 | Attribute | Type | Default |
