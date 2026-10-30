@@ -22,7 +22,7 @@ The live model catalog is authoritative for model IDs, availability, supported
 input modes, parameter names, allowed values, defaults, and limits. This skill
 defines the stable generation envelope and the intent-specific basics. Reuse a
 compatible `query` result already present in the conversation.
-Call it with `kind: "model"` before constructing detailed parameters only when
+Call it with `request.kind: "model"` before constructing detailed parameters only when
 the required intent or capability is not already known.
 
 ## Common Workflow
@@ -40,13 +40,19 @@ Query exactly one intent:
 
 ```json
 {
-  "kind": "model",
-  "where": { "intent": "video.generate" }
+  "request": {
+    "kind": "model",
+    "where": {
+      "intent": "video.generate"
+    }
+  }
 }
 ```
 
-Choose an enabled result using its `summary`. Copy its `modelId` exactly. Then
-read:
+If the user named a model, honor that selection. Otherwise choose an enabled
+result using its summary and the required capabilities. Copy its `modelId`
+exactly and pass it explicitly in every `generate` Task. Inspect the selected
+result before constructing inputs:
 
 - `input.primary` for the exact required `prompt` or `text` key and hard
   `limit`, when present;
@@ -59,8 +65,15 @@ read:
 Do not merge slots from different input modes. Do not use remembered model
 parameters when the current query differs.
 
-Examples below use representative values. Include them only when the selected
-model's current query result supports those exact values.
+Check duration and media-input compatibility before finalizing the plan. If a
+user-selected model cannot meet the requirements, explain the limitation and
+resolve it with the user. Retries and resumes must keep the saved `modelId`
+and inputs. Changing the model requires a revised plan; never silently
+substitute another model during execution.
+
+Examples below use representative values. Replace `model-id-from-query` with
+the selected catalog ID, and include parameters only when that model's current
+query result supports those exact values.
 
 Submit one generation with:
 
@@ -126,7 +139,7 @@ Generation:
   "contextId": "context-id",
   "task": "generate",
   "params": {
-    "modelId": "image-model-id-from-query",
+    "modelId": "model-id-from-query",
     "name": "product-hero.png",
     "input": {
       "prompt": "Studio product photograph on a warm neutral background",
@@ -137,14 +150,15 @@ Generation:
 }
 ```
 
-Editing adds references rather than changing the Task type:
+For editing, query `image.edit` and add reference-role inputs supported by
+the selected model. Editing is not a separate Task type:
 
 ```json
 {
   "contextId": "context-id",
   "task": "generate",
   "params": {
-    "modelId": "image-edit-model-id-from-query",
+    "modelId": "model-id-from-query",
     "name": "product-hero-edited.png",
     "input": {
       "prompt": "Preserve the product and replace only the background",
@@ -176,7 +190,7 @@ model-specific and must come from `query`.
   "contextId": "context-id",
   "task": "generate",
   "params": {
-    "modelId": "video-model-id-from-query",
+    "modelId": "model-id-from-query",
     "name": "product-reveal.mp4",
     "input": {
       "prompt": "Slow cinematic push-in while light moves across the product",
@@ -196,14 +210,42 @@ model-specific and must come from `query`.
 Do not mix a first/last-frame mode with a reference-media mode unless the
 queried model explicitly returns one mode containing both.
 
+To replace a person while keeping an action, choose one `reference` mode that
+accepts image and video references. For template replacement, follow
+`reference-adaptation`: record every approved subject identity/detail image and
+inspect replacement stills covering every original shot in each merged segment. Plan/build through the
+variant executor, which assembles the full image set and the exact shot motion
+clip from `extract_video`; do not submit standalone video Tasks to bypass it.
+Reuse inspected imagery instead of generating duplicates. Never omit required
+references to fit model capacity. A path written in `prompt` is not a media
+input. Set `generateAudio` to false when the Timeline keeps the original sound.
+If the provider rejects that reference combination, stop. Do not resubmit
+without the video, and do not switch models.
+
+When the Timeline will own captions, titles, stickers or product cards, generate
+clean footage and author those elements with `timeline-editing` or `graphics`.
+Keep exact overlay copy out of the video prompt; describe visible actions rather
+than asking the model to illustrate spoken words as labels. Specify each
+reference's role: identity/physical product facts versus motion/camera timing.
+A negative "no text" instruction is only guidance, not a cleanup guarantee.
+Inspect the ready Artifact itself with `extract_frame` before adding overlays;
+use clear single frames for suspected letters. Do not accept garbled text or
+hide it under another caption. Physical packaging lettering must match the
+approved product reference; it is not an editable caption. For fixed-template
+work, follow `reference-adaptation` for clean-source mapping and focused repair.
+
 ## Music
 
 Before generating a generic music bed, query the curated BGM Library:
 
 ```json
 {
-  "kind": "bgm",
-  "where": { "q": "optimistic electronic product launch" }
+  "request": {
+    "kind": "bgm",
+    "where": {
+      "q": "optimistic electronic product launch"
+    }
+  }
 }
 ```
 
@@ -243,13 +285,17 @@ Library:
 
 ```json
 {
-  "kind": "sfx",
-  "where": { "q": "polished metallic whoosh" }
+  "request": {
+    "kind": "sfx",
+    "where": {
+      "q": "polished metallic whoosh"
+    }
+  }
 }
 ```
 
 If a result fits, call `use_library` with its `libraryId` and the
-current `contextId`, then use the returned Artifact. Query `kind: "model"` with
+current `contextId`, then use the returned Artifact. Query `request.kind: "model"` with
 intent `audio.sfx` and generate only when the Library has no suitable result.
 
 Sound effects use `prompt` for the audible event, environment, perspective,
@@ -282,8 +328,12 @@ for the selected model:
 
 ```json
 {
-  "kind": "voice",
-  "where": { "modelId": "tts-model-id-from-query" }
+  "request": {
+    "kind": "voice",
+    "where": {
+      "modelId": "tts-model-id-from-query"
+    }
+  }
 }
 ```
 
@@ -324,6 +374,14 @@ waiting for generation to finish. If the workflow depends on progress or
 output, call `poll` with the exact `contextId` and returned
 `toolCallId`.
 Never resubmit a queued or running Task.
+
+`rejected`, `error`, `failed`, and `cancelled` end that attempt. Stop polling
+for that Task, explain the cause and affected output, and preserve ready media
+and existing Timeline work. An input or content-policy rejection needs an
+allowed input or a supported alternative, not an unchanged retry. Temporary
+failures use the Task runner's bounded retry policy; do not create duplicate
+Tasks to retry them. Only start another attempt after resolving the cause
+within the user's agreed work and model-selection policy.
 
 Generation does not place media on a timeline. When placement is requested,
 use the returned Artifact path as the `source` of a compatible `ImageClip`,

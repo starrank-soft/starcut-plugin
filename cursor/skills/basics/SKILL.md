@@ -138,7 +138,22 @@ search Artifact content or metadata.
 
 ## Query Catalogs
 
-`query` reads one leaf catalog selected by `kind`:
+`query` accepts one catalog request. For example:
+
+```json
+{
+  "request": {
+    "kind": "model",
+    "where": {
+      "intent": "video.generate"
+    }
+  }
+}
+```
+
+Select the catalog with `request.kind`. Model queries require `request.where.intent`;
+voice queries require `request.where.modelId`. Use `request.where` for catalog-specific
+filters and `request.limit` and `request.offset` where pagination is supported:
 
 | `kind` | Use |
 |---|---|
@@ -307,14 +322,36 @@ playback state, Timeline renderer, or local media:
 | `activate_timeline`, `render_timeline` | exact Timeline path or ID |
 | `extract_frame` | exact Timeline or visual Artifact path |
 | `extract_audio` | exact Video Artifact path |
+| `extract_video` | exact Video Artifact path; `params.timeRange` is required |
 | `get_transcript` | exact Audio or Video Artifact path |
 
-`seek` uses `params.positionUs` in integer microseconds. `extract_frame` uses
-`params.timeUs`; it never reads the active playhead, and omitting it extracts
-the source at 0 seconds. Do not pass `positionUs` to `extract_frame`.
+`seek` uses `params.positionUs` in integer microseconds. `extract_frame` never
+reads the active playhead and never uses `positionUs`. Use a grid for an overview;
+reuse existing evidence for known moments.
 
-For example, extract a 640-pixel-long-edge frame at 1.2 seconds for visual
-inspection:
+Range mode takes `params.timeRange: { startUs, endUs }` as a half-open
+`[startUs, endUs)` interval plus exactly one of `count` or `intervalUs`. It
+returns labeled 4×3 JPEG grid pages and a per-cell manifest. At most 60
+samples; invalid ranges and oversize plans fail instead of being clipped.
+`includeText` defaults to true and labels cells from an existing transcript or
+Caption; it does not run ASR or OCR.
+
+```json
+{
+  "contextId": "context-id",
+  "command": "extract_frame",
+  "target": "assets/reference.mp4",
+  "params": {
+    "timeRange": { "startUs": 0, "endUs": 12000000 },
+    "count": 12,
+    "includeText": true
+  }
+}
+```
+
+Single-frame mode still uses `params.timeUs`; omitting it extracts the source
+at 0 seconds. `params.maxLongEdge` (64–4096) is valid for a single frame or batch
+and preserves aspect ratio and layout.
 
 ```json
 {
@@ -325,9 +362,19 @@ inspection:
 }
 ```
 
-`params.maxLongEdge` accepts 64–4096 pixels and preserves the source aspect
-ratio and layout. Omit it only when full source resolution is required. Client
-calls may return Artifacts. They require a connected Editor.
+For several known moments on one Video or Timeline, request independent images
+in one call: `params: { "timesUs": [1000000, 4000000, 8000000], "maxLongEdge": 1280 }`.
+`timesUs` accepts 1–12 distinct integer microsecond timestamps strictly before
+source end; it cannot be combined with `timeUs`, `timeRange`, `count`,
+`intervalUs`, or `includeText`. The result has `mode: "batch"` and ordered
+`frames`, each with `sampleTimeUs`, `sourceFrameTimeUs`, and an image
+`artifact: { id, hash, path, url }` suitable for generation references.
+Images default to hidden with a 1280-pixel longest edge. Matching saved samples
+are reused across calls; source/Timeline content or size changes invalidate
+reuse. Use grids for overview, batches for independent references, and single
+frames for one unresolved detail.
+
+Client calls may return Artifacts. They require a connected Editor.
 
 Artifact-producing operations do not place their result on a Timeline
 automatically. Add or update the intended Clip explicitly when placement is
@@ -337,6 +384,8 @@ requested.
 
 | Intent | Skill |
 |---|---|
+| Analyze a reference video's pictures, text evidence, and pacing | `reference-analysis` |
+| Adapt a reference to the user's material, copy, or editable Timeline | `reference-adaptation` |
 | Edit Tracks, Clips, timing, captions, audio, or layering | `timeline-editing` |
 | Create or edit SVG and MG elements | `graphics` |
 | Get a transcript or produce captions | `transcription` |
